@@ -1,4 +1,5 @@
 """ Base scraper class for all scrapers """
+import logging
 
 import scrapy
 import json
@@ -14,14 +15,17 @@ class Scraper(scrapy.Spider):
         super().__init__(*args, **kwargs)
 
     """ scrapy starts crawling by calling this method """
+
     def start_requests(self):
         pass
 
     """ method to extract or parse data required to login """
+
     def prepare_login_request(self, response):
         pass
 
     """ generic login request method """
+
     def login(self, token, url, callback_method, config):
 
         self.logger.debug("Scraper::login::Authenticating with login url: %s" % url)
@@ -45,6 +49,7 @@ class Scraper(scrapy.Spider):
         )
 
     """ Callback Handler for different errors occurred while making requests """
+
     def errback_handler(self, failure):
         self.logger.error(repr(failure))
 
@@ -67,31 +72,41 @@ class Scraper(scrapy.Spider):
 
     """ method to check if login successful or not, can be overridden in derived class if 
     required for that crawler """
-    def is_authenticated(self, response):
 
+    def is_authenticated(self, response):
         response_dict = json.loads(response.text)
 
-        if response_dict["success"]:
-            self.logger.info("Scraper::is_authenticated::Login successful.")
-            return self.navigate_to(response)
-        else:
-            self.logger.error("Scraper::is_authenticated::Login failed.")
-            raise CloseSpider(reason="Login failed.")
+        try:
+
+            if response_dict["success"]:
+                self.logger.info("Scraper::is_authenticated::Login successful.")
+                return self.navigate_to(response)
+            else:
+                self.logger.error("Scraper::is_authenticated::Login failed.")
+                raise CloseSpider(reason="Login failed.")
+        except:
+            raise AssertionError("Authentication failed")
 
     """ Once authenticated, request goes into this method for navigating to required pages """
+
     def navigate_to(self, response):
         pass
 
     """ Method for crawling a page once navigation done """
+
     def parser(self, response):
         pass
 
     """ method to write response data into a local file"""
+
     def write_data(self, filename, data, ftype):
-        with open(filename, 'w') as f:
-            if ftype == 'json':
-                json.dump(data, f, indent=2)
-            elif ftype == 'text':
-                f.write(data)
-            else:
-                print("Type not recognized.")
+        try:
+            with open(filename, 'w') as f:
+                if ftype == 'json':
+                    json.dump(data, f, indent=2)
+                elif ftype == 'text':
+                    f.write(data)
+                else:
+                    logging.info("Type not recognized.")
+        except Exception as e:
+            self.logger.error('Failed to write data', e)

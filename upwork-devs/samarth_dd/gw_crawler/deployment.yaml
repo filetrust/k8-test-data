@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: glasswallcrawler
+  labels:
+    app: flask
+spec:
+  selector:
+    matchLabels:
+      app: glasswallcrawler
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: glasswallcrawler
+    spec:
+      containers:
+      - name: glasswallcrawler
+        image: glasswallcrawler:1.0
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: glasswallcrawler
+  labels:
+    app: glasswallcrawler
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    name: glasswallcrawler
+  selector:
+    app: glasswallcrawler
+  type: LoadBalancer
+
+

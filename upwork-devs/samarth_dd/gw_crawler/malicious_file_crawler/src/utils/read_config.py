@@ -11,7 +11,10 @@ class ConfigReader:
         self.property_name = property_name
 
     def read_config(self):
-        config = configparser.ConfigParser()
-        config.read(settings.CONFIG_FILE)
-        config_ref = config[self.property_name]
-        return config_ref
+        try:
+            config = configparser.ConfigParser()
+            config.read(settings.CONFIG_FILE)
+            config_ref = config[self.property_name]
+            return config_ref
+        except Exception as e:
+            raise FileNotFoundError(e)

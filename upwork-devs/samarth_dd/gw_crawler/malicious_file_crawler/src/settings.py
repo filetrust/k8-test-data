@@ -8,7 +8,17 @@
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 import os
 
+
+
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
+
+from dotenv import load_dotenv
+load_dotenv()
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# Get the path to the directory this file is in
+CURR_DIR = os.path.abspath(os.path.dirname(__file__))
 
 BOT_NAME = 'src'
 
@@ -17,7 +27,6 @@ NEWSPIDER_MODULE = 'src.spiders'
 
 # Config file path
 CONFIG_FILE = os.path.join(BASE_PATH, 'config', 'config.ini')
-# print(BASE_PATH, CONFIG_FILE)
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'malicious_file_crawler (+http://www.yourdomain.com)'
@@ -26,7 +35,7 @@ CONFIG_FILE = os.path.join(BASE_PATH, 'config', 'config.ini')
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-#CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS = 32
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -69,19 +78,18 @@ DOWNLOADER_MIDDLEWARES = {
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    "scrapy.pipelines.files.FilesPipeline": 1
+    "src.pipelines.MaliciousFileCrawlerPipeline": 1
 }
 
 DOWNLOAD_TIMEOUT = 12000
 
-FILES_STORE = '../..'
+MEDIA_ALLOW_REDIRECTS = True
+FILES_STORE=BASE_DIR+"/static/"
+
 
 # Uncomment this when MINIO service is running
-# AWS_ENDPOINT_URL = 'http://minio.example.com:9000'
-
 # max download size of 5gb
 DOWNLOAD_MAXSIZE = 5368709120
-
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
 #AUTOTHROTTLE_ENABLED = True
@@ -102,3 +110,19 @@ DOWNLOAD_MAXSIZE = 5368709120
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
