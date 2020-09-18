@@ -1,20 +1,17 @@
 import os
-import uuid
 import zipfile
 
 from src.constants import base_unzip_path
-
 from src.constants import zip_path
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-download_path=file_path=base_unzip_path
+download_path = file_path = base_unzip_path
 
-bundle_zip_path=zip_path
+bundle_zip_path = zip_path
+
 
 class FileService:
-
-
 
     @staticmethod
     def unzip_files(file, key=None):
@@ -28,22 +25,15 @@ class FileService:
             zp.extractall(path, pwd=bytes(os.environ["vs_zip_pwd"], "utf-8"))
 
     @staticmethod
-    def zip_files(file, key=None):
-        """
-        Compress :files to zip
-        """
+    def zip_files(files, key=None):
         # path = download_path
         # if key:
         #     path = path + "/" + key
-        fname = download_path + "/" + key+".zip"
+        fname = download_path + "/" + key + ".zip"
         zipObj = zipfile.ZipFile(fname, "w")
-        zipObj.write(file,key)
-        # for file in files:
-        #     arcname = file.rsplit("/", 1)[-1]
-        #     zipObj.write(file, arcname=arcname)
+        zipObj.write(files, key)
         zipObj.close()
         return fname
-
 
     @staticmethod
     def get_file_meta(file_path):

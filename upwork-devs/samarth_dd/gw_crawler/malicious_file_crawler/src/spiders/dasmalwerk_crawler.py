@@ -1,14 +1,11 @@
 # -*- coding: utf-8 -*-
 """ Scraper class for getting malicious files from tech defence portal """
-import requests
 import scrapy
-from urllib.parse import urljoin
-
-from scrapy.http import TextResponse
-from scrapy.loader import ItemLoader
+from lxml import html as html_xml
 from malicious_file_crawler.src.items import MaliciousFileCrawlerItem
 from malicious_file_crawler.src.spiders.scraper import Scraper
-from lxml import html as html_xml
+from scrapy.loader import ItemLoader
+
 
 class DasMalwerkScraper(Scraper):
     name = 'das_malwerk_scraper'
@@ -26,7 +23,7 @@ class DasMalwerkScraper(Scraper):
 
     def start_requests(self):
         """ inbuilt start method called by scrapy when initializing crawler. """
-        yield scrapy.Request(self.file_urls,callback=self.navigate_to)
+        yield scrapy.Request(self.file_urls, callback=self.navigate_to)
 
     def navigate_to(self, response):
         yield scrapy.Request(self.file_urls,
@@ -34,7 +31,7 @@ class DasMalwerkScraper(Scraper):
 
     def download_files(self, response):
         # get download file link
-        html= html_xml.fromstring(response.text)
+        html = html_xml.fromstring(response.text)
         file_download_link_elements = html.xpath("//tr//td[2]/a/@href")
 
         loader = ItemLoader(item=MaliciousFileCrawlerItem())
@@ -42,9 +39,3 @@ class DasMalwerkScraper(Scraper):
         for link in file_download_link_elements:
             loader.add_value('file_urls', link)
             yield loader.load_item()
-
-
-
-
-
-

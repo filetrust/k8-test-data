@@ -40,8 +40,8 @@ spec:
             - server
             - "/data"
           volumeMounts:
-          - name: data
-            mountPath: "/data"
+            - name: data
+              mountPath: "/data"
           resources:
             limits:
               cpu: 500m
@@ -54,8 +54,8 @@ spec:
       schedulerName: default-scheduler
       terminationGracePeriodSeconds: 30
       volumes:
-      - name: data
-        emptyDir: {}
+        - name: data
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

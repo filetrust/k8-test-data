@@ -1,8 +1,11 @@
 import os
 from unittest import TestCase
 from unittest.mock import Mock
-from gw_crawler.malicious_file_crawler.src.spiders.glasswall_crawler import GlasswallScraper
+
 from malicious_file_crawler.src.utils.read_config import ConfigReader
+
+from gw_crawler.malicious_file_crawler.src.spiders.glasswall_crawler import GlasswallScraper
+
 
 class TestGlasswallCrawler(TestCase):
     def setUp(self):
@@ -25,11 +28,8 @@ class TestGlasswallCrawler(TestCase):
         response = self.scrapper.navigate_to(Mock())
         self.assertIsNotNone(response)
 
+
 class TestDasMalwerkScraper:
 
     def test_start_requests(self):
         pass
-
-
-
-

@@ -1,12 +1,12 @@
 """ Base scraper class for all scrapers """
+import json
 import logging
 
 import scrapy
-import json
+from scrapy.exceptions import CloseSpider
 from scrapy.spidermiddlewares.httperror import HttpError
 from twisted.internet.error import DNSLookupError
 from twisted.internet.error import TimeoutError
-from scrapy.exceptions import CloseSpider
 
 
 class Scraper(scrapy.Spider):

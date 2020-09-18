@@ -12,4 +12,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 CMD ["cd", "/malicious_file_crawler"]
 
-CMD [ "python", "-m", "src.glasswall_crawler_runner","TEKDEF" ]
+CMD [ "python", "-m", "src.glasswall_crawler_runner","DASMAL" ]

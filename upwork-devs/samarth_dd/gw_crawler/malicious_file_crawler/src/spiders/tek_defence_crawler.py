@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """ Scraper class for getting malicious files from tech defence portal """
-import scrapy
 from urllib.parse import urljoin
-from scrapy.loader import ItemLoader
+
+import scrapy
 from malicious_file_crawler.src.items import MaliciousFileCrawlerItem
 from malicious_file_crawler.src.spiders.scraper import Scraper
+from scrapy.loader import ItemLoader
+
 
 class TekDefenceScraper(Scraper):
     name = 'tek_defence_spider'
@@ -15,7 +17,6 @@ class TekDefenceScraper(Scraper):
         'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter',
         'ROBOTSTXT_OBEY': False
     }
-
 
     def __init__(self, config=None, data=None):
         super(TekDefenceScraper, self).__init__()
@@ -45,10 +46,3 @@ class TekDefenceScraper(Scraper):
             absolute_path = urljoin(response.url, link)
             loader.add_value('file_urls', absolute_path)
             yield loader.load_item()
-
-
-
-
-
-
-

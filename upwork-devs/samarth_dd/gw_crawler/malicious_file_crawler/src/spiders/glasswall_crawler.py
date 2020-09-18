@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
+import logging
+
 import scrapy
-from scrapy.loader import ItemLoader
 from malicious_file_crawler.src.items import MaliciousFileCrawlerItem
 from malicious_file_crawler.src.spiders.scraper import Scraper
-import logging
+from scrapy.loader import ItemLoader
 
 logger = logging.getLogger("gw:k8-testdata")
 prefs = {'profile.default_content_setting_values.automatic_downloads': 1}
+
 
 # remoteWebDriverUrl = "http://192.168.99.100:4444/wd/hub"
 

@@ -17,11 +17,11 @@ spec:
         app: glasswallcrawler
     spec:
       containers:
-      - name: glasswallcrawler
-        image: glasswallcrawler:1.0
-        imagePullPolicy: Never
-        ports:
-        - containerPort: 80
+        - name: glasswallcrawler
+          image: glasswallcrawler:1.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80
 
 ---
 apiVersion: v1
@@ -32,9 +32,9 @@ metadata:
     app: glasswallcrawler
 spec:
   ports:
-  - port: 80
-    protocol: TCP
-    name: glasswallcrawler
+    - port: 80
+      protocol: TCP
+      name: glasswallcrawler
   selector:
     app: glasswallcrawler
   type: LoadBalancer

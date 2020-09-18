@@ -1,8 +1,8 @@
 """ Main class for initializing and running crawlers. """
-import argparse
 import logging
 import os
 import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from scrapy.exceptions import CloseSpider
 from scrapy.crawler import CrawlerProcess
@@ -13,7 +13,8 @@ logging.basicConfig(filename="testdata.log",
                     format='%(asctime)s %(message)s',
                     filemode='w')
 
-logger=logging.getLogger()
+logger = logging.getLogger()
+
 
 class GlassWallRunner(object):
     """ Initialize crawler with project settings """

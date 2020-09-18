@@ -1,8 +1,10 @@
 import os
 import sys
 from unittest import TestCase, mock
+
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from malicious_file_crawler.src.glasswall_crawler_runner import GlassWallRunner
 
