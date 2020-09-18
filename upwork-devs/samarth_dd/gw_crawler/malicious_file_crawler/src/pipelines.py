@@ -38,12 +38,10 @@ class MaliciousFileCrawlerPipeline(FilesPipeline):
 
         for file in os.listdir(unzip_path):
             file_path = unzip_path + "/" + file
-            print(file_path)
             json_response = MaliciousCheck.check_malicious(file_path)
             metadata = FileService.get_file_meta(path)
             integrated_data = metadata.update(json_response)
             zip_path = unzip_path + "/"
-            print(integrated_data)
             with open(zip_path + 'metadata.txt', 'w') as outfile:
                 json.dump(metadata, outfile)
 
