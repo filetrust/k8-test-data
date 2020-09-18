@@ -13,8 +13,8 @@ logging.basicConfig(filename="testdata.log",
                     filemode='w')
 
 logger=logging.getLogger()
-
-class ObjectCreator(object):
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+class MinioService(object):
 
     def get_storage_adapter(self):
         storage_type = settings.target_storage

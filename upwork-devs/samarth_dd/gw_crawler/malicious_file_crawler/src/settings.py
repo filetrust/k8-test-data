@@ -8,7 +8,7 @@
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 import os
 
-
+from src.constants import zip_download_path
 
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 
@@ -84,7 +84,7 @@ ITEM_PIPELINES = {
 DOWNLOAD_TIMEOUT = 12000
 
 MEDIA_ALLOW_REDIRECTS = True
-FILES_STORE=BASE_DIR+"/static/"
+FILES_STORE=zip_download_path
 
 
 # Uncomment this when MINIO service is running

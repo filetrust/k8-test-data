@@ -1,5 +1,7 @@
 import os
-from src.virtual_total import Virustotal
+
+from src.virus_total import Virustotal
+
 
 class MaliciousCheck:
 

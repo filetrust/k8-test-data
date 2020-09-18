@@ -2,10 +2,15 @@ import os
 import uuid
 import zipfile
 
+from src.constants import base_unzip_path
+
+from src.constants import zip_path
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-download_path=file_path=BASE_DIR+"/static/unzip/"
+download_path=file_path=base_unzip_path
+
+bundle_zip_path=zip_path
 
 class FileService:
 
@@ -23,18 +28,19 @@ class FileService:
             zp.extractall(path, pwd=bytes(os.environ["vs_zip_pwd"], "utf-8"))
 
     @staticmethod
-    def zip_files(files, key=None):
+    def zip_files(file, key=None):
         """
         Compress :files to zip
         """
-        path = download_path
-        if key:
-            path = path + "/" + key
-        fname = download_path + "/" + str(uuid.uuid4()) + ".zip"
+        # path = download_path
+        # if key:
+        #     path = path + "/" + key
+        fname = download_path + "/" + key+".zip"
         zipObj = zipfile.ZipFile(fname, "w")
-        for file in files:
-            arcname = file.rsplit("/", 1)[-1]
-            zipObj.write(file, arcname=arcname)
+        zipObj.write(file,key)
+        # for file in files:
+        #     arcname = file.rsplit("/", 1)[-1]
+        #     zipObj.write(file, arcname=arcname)
         zipObj.close()
         return fname
 
