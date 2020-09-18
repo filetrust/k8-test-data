@@ -45,7 +45,7 @@ class MaliciousFileCrawlerPipeline(FilesPipeline):
             with open(zip_path + 'metadata.txt', 'w') as outfile:
                 json.dump(metadata, outfile)
             with open(zip_path + 'report.txt', 'w') as outfile:
-                json.dump(metadata, outfile)
+                json.dump(json_response, outfile)
 
             zipped_file = FileService.zip_files(file_path, key=key)
 
