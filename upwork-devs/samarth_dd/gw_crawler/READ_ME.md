@@ -1,29 +1,6 @@
 ## Run scraper in local machine
 
-###Create virtual env 
-
-```
-        virtualenv venv
-    
-```
-
-### Install requirements
-```
-        cd malicious_file_crawler/
-        pip install -r requirements.txt
-```
-
-### Run scrapper
-
-```
-        configure .env (Regfere .env sample)
-        
-        python -m src.glasswall_crawler_runner DASMAL
-
-        Note:You can run single cralwer or  multiple site crawler.See config.ini
-    
-```
-##update storage/src/config/config.ini
+##update storage endpoints at  storage/src/config/config.ini 
 
         [MINIO]
         ENDPOINT='http://play.min.io:80'
@@ -39,7 +16,10 @@
         AWS_SECRET_ACCESS_KEY=minio1@123
         SECURE=False
 
-##update malicious_file_crawler/src/config config.ini
+##Update crawler sites at malicious_file_crawler/src/config config.ini
+
+        [SCRAPE_SITE]
+        scrape_sites = CORVUS
 
         [DASMAL]
         name = das_malwerk_scraper
@@ -50,17 +30,20 @@
         login_url = http://www.tekdefense.com/downloads/malware-samples/
         file_page_url = http://www.tekdefense.com/downloads/malware-samples/
 
-### Run scrapper in kubernetes
+###Update .env 
+
+    see .env_sample 
+    
+### Run scrapper in Docker
 ```
     docker build -t glasswallcrawler:1.0 .
-    
-    kubectl apply -f minio-service.yaml
-    
-    kubectl apply -f deployment.yaml
-   
-    docker run --env-file .env glasswallcrawler:1.0
+     
+    docker run --env-file .env glasswallcrawler:1.0 
+
+        (run where you have created .env file)
 
 ```
+
 
 
 
