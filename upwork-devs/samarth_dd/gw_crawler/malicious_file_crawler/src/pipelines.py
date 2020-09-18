@@ -44,9 +44,10 @@ class MaliciousFileCrawlerPipeline(FilesPipeline):
             zip_path = unzip_path + "/"
             with open(zip_path + 'metadata.txt', 'w') as outfile:
                 json.dump(metadata, outfile)
+            with open(zip_path + 'report.txt', 'w') as outfile:
+                json.dump(metadata, outfile)
 
-            f = unzip_path + "/"
-            zipped_file = FileService.zip_files(f, key=key)
+            zipped_file = FileService.zip_files(file_path, key=key)
 
             client = MinioClient.get_client()
             if not client.bucket_exists(bucket_name):
