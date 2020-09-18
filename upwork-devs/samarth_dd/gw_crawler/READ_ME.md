@@ -17,8 +17,7 @@
 
 ```
         configure .env (Regfere .env sample)
-        create a bucket named mybucket in minio
- 
+        
         python -m src.glasswall_crawler_runner DASMAL
 
         Note:You can run single cralwer or  multiple site crawler.See config.ini
@@ -58,9 +57,7 @@
     kubectl apply -f minio-service.yaml
     
     kubectl apply -f deployment.yaml
-    
-  
-    
+   
     docker run --env-file .env glasswallcrawler:1.0
 
 ```
