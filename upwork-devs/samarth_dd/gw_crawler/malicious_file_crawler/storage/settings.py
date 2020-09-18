@@ -10,6 +10,5 @@ CURR_DIR = os.path.abspath(os.path.dirname(__file__))
 
 CONFIG_FILE = os.path.join(BASE_PATH, 'config', 'config.ini')
 
-target_storage = 'MINIO'
-
-# target_storage='S3'
+target_storage = os.environ['STORAGE_TYPE']
+#target_storage='S3'
