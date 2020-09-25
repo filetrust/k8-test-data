@@ -49,11 +49,6 @@ Malware Public Repositories ( Proceed with caution when handling live malware) :
   - Requires password (free)
   - Related blog: http://contagiominidump.blogspot.com/
 
-**AVCaesar**: https://avcaesar.malware.lu/
-
-  - Requires login (free)
-  - Free accounts can download 15 malware samples/day
-
 **The Zoo**: https://github.com/ytisf/theZoo
 
   - Look in malwares/Binaries subdirectory
