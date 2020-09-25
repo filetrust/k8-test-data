@@ -16,14 +16,14 @@ from .constants import base_unzip_path, zip_download_path
 from .utils.file_service import FileService
 from .utils.malicious_check import MaliciousCheck
 from .utils.minio_client import MinioClient
+from .utils.rabbit_client import RabbitClient
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class MaliciousFileCrawlerPipeline(FilesPipeline):
-
     def file_downloaded(self, response, request, info, unzip_path=None):
-        
+
         path = self.file_path(request, response=response, info=info)
         buf = BytesIO(response.body)
         checksum = md5sum(buf)
@@ -38,20 +38,21 @@ class MaliciousFileCrawlerPipeline(FilesPipeline):
 
         for file in os.listdir(unzip_path):
             file_path = unzip_path + "/" + file
-            json_response = {} # MaliciousCheck.check_malicious(file_path)
+            json_response = {}  # MaliciousCheck.check_malicious(file_path)
             metadata = FileService.get_file_meta(path)
             integrated_data = metadata.update(json_response)
             zip_path = unzip_path + "/"
-            with open(zip_path + 'metadata.txt', 'w') as outfile:
+            with open(zip_path + "metadata.txt", "w") as outfile:
                 json.dump(metadata, outfile)
-            with open(zip_path + 'report.txt', 'w') as outfile:
+            with open(zip_path + "report.txt", "w") as outfile:
                 json.dump(json_response, outfile)
 
             zipped_file = FileService.zip_files(file_path, key=key)
-            bucket_name = metadata['extension']
-            client = MinioClient.get_client()
-            if not client.bucket_exists(bucket_name):
-                client.create_bucket(bucket_name)
-            client.upload_file(bucket_name, path.split("/")[-1], zipped_file)
+
+            payload = {"file": zipped_file}
+
+            # Connect to RabbitMQ client and put a job in Remote Queue
+            client = RabbitClient()
+            client.publish_job(payload)
 
         return checksum

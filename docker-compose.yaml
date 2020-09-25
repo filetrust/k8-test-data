@@ -34,6 +34,7 @@ services:
       - 5002:5000
     links:
       - minio
+      - rabbitmq
 
   k8-file-distribution:
     image: k8-file-distribution
