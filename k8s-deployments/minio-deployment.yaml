@@ -1,0 +1,89 @@
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: minio
+  name: minio-service
+spec:
+  ports:
+    - port: 9000
+      targetPort: 9000
+      protocol: TCP
+  selector:
+    app: minio
+
+---
+
+apiVersion: v1
+data:
+    MINIO_ACCESS_KEY: minio1
+    MINIO_SECRET_KEY: minio1@123
+kind: Secret
+metadata:
+  name: minio-secret
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  labels:
+    app: minio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+      - name: minio
+        image: minio/minio:RELEASE.2020-09-08T23-05-18Z
+        args:
+        - server
+        - /data
+        envFrom:
+          - secretRef:
+              name: minio-secret
+        ports:
+        - containerPort: 9000
+        readinessProbe:
+          httpGet:
+            path: /minio/health/ready
+            port: 9000
+          initialDelaySeconds: 30
+          periodSeconds: 20
+        livenessProbe:
+          httpGet:
+            path: /minio/health/live
+            port: 9000
+          initialDelaySeconds: 30
+          periodSeconds: 20
+
+        volumeMounts:
+        - name: localtime-vol
+          mountPath: /etc/localtime
+        - name: timezone-vol
+          mountPath: /etc/timezone
+        - name: data 
+          mountPath: "/data"
+
+      volumes:
+      - name: localtime-vol
+        hostPath:
+          path: /etc/localtime
+      - name: timezone-vol
+        hostPath:
+          path: /etc/timezone
+          type: File
+      - name: data
+        hostPath:
+          path: /DATA/minio-data
+          type: DirectoryOrCreate

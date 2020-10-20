@@ -1,0 +1,76 @@
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: k8-file-processor
+  name: k8-file-processor-service
+spec:
+  ports:
+    - port: 5000
+      targetPort: 5000
+      protocol: TCP
+  selector:
+    app: k8-file-processor
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8-file-processor-configmap
+data:
+  MQ_HOST: rabbitmq
+  MQ_QUEUE: queue01
+  PYTHONUNBUFFERED: 0
+  MINIO_URL: Enter minio endpoint
+  MINIO_ACCESS_KEY: Enter minio access key
+  MINIO_SECRET_KEY: Enter minio secret key
+  virustotal_url: https://www.virustotal.com/vtapi/v2/
+  virustotal_key: 
+  MQ_HOST: rabbitmq
+  MQ_QUEUE: queue01
+  rebuild_api: http://glasswall-rebuild-service:5003/process
+  s3_sync_api: http://k8-s3-sync-service:5004/tos3
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8-file-processor
+  labels:
+    app: k8-file-processor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8-file-processor
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: k8-file-processor
+    spec:
+      containers:
+      - name: k8-file-processor
+        image: k8-file-processor
+        envFrom:
+          - configMapRef:
+              name: k8-file-processor-configmap
+
+        volumeMounts:
+        - name: localtime-vol
+          mountPath: /etc/localtime
+        - name: timezone-vol
+          mountPath: /etc/timezone
+
+      volumes:
+      - name: localtime-vol
+        hostPath:
+          path: /etc/localtime
+      - name: timezone-vol
+        hostPath:
+          path: /etc/timezone
+          type: File
