@@ -109,3 +109,31 @@ Note :  http://contagiodump.blogspot.com/ in above public reference not implemen
 ## Run security check
 
 `python3 -m bandit --skip B605 -ll -r .`
+
+
+## Setup ELK Logging
+
+### Start ELK service
+`docker-compose -f elk-compose.yaml up`
+
+### Setup client
+
+`pip install python-logstash-async==2.0.0`
+
+* logger.py
+```
+import logging, sys
+from logstash_async.handler import AsynchronousLogstashHandler
+logger = logging.getLogger('python-logstash-logger')
+logger.setLevel(logging.DEBUG)
+async_handler = AsynchronousLogstashHandler('localhost', 5006, database_path=None)
+console_handler = logging.StreamHandler(sys.stdout)
+logger.addHandler(async_handler)
+logger.addHandler(console_handler)
+```
+
+On client.py
+```
+from logger import logger
+logger.info("hello")
+```
