@@ -29,6 +29,7 @@ class MaliciousFileCrawlerPipeline(FilesPipeline):
         super(MaliciousFileCrawlerPipeline, self).__init__(*a, **kw)
         self.extension = None
         self.hash_api_url = None
+        self.url = None
 
     def file_downloaded(self, response, request, info, unzip_path=None):
         """
@@ -54,8 +55,9 @@ class MaliciousFileCrawlerPipeline(FilesPipeline):
                 minio_path = path.split("/")[-1]
                 file_stat = os.stat(downloaded_file_path)
 
+                metadata = {"url": self.url}
                 self.store_data_stream(bucket_name=bucket_name, minio_path=minio_path, data=response.body,
-                                       length=file_stat.st_size)
+                                       length=file_stat.st_size, metadata=str(metadata))
 
                 return checksum
 
@@ -68,9 +70,8 @@ class MaliciousFileCrawlerPipeline(FilesPipeline):
             urls = ItemAdapter(item).get(self.files_urls_field, [])
             ext = ItemAdapter(item).get('extension', [])
             self.hash_api_url = ItemAdapter(item).get('hash_api_url', [])
-            logger.info(f'hash_api_url {self.hash_api_url}')
             if (ext):
-                self.extension = "." + ext[0]
+                self.extension = "." + ext
 
             return [Request(u) for u in urls]
         except Exception as error:
@@ -78,13 +79,15 @@ class MaliciousFileCrawlerPipeline(FilesPipeline):
             raise error
 
     def file_path(self, request, response=None, info=None):
+        self.url=request.url
+        vs_key=os.environ.get('VIRUSSHARE_API_KEY')
+        mal_key=os.environ.get('MALSHARE_API_KEY')
 
-        if (self.hash_api_url):
-            hash_url = self.hash_api_url[0]
-        else:
-            hash_url = request.url[0]
-        logger.info(f'hash_url {hash_url}')
-        media_guid = hashlib.sha1(to_bytes(hash_url)).hexdigest()
+        self.url=self.url.replace(vs_key, "")
+        self.url=self.url.replace(mal_key, "")
+
+        logger.info(f'MaliciousFileCrawlerPipeline : file_path : malware url :  {self.url}')
+        media_guid = hashlib.sha1(to_bytes(self.url)).hexdigest()
         media_ext = os.path.splitext(request.url)[1]
         # Handles empty and wild extensions by trying to guess the
         # mime type then extension or default to empty string otherwise
@@ -98,13 +101,14 @@ class MaliciousFileCrawlerPipeline(FilesPipeline):
                 media_ext = mimetypes.guess_extension(media_type)
         return 'full/%s%s' % (media_guid, media_ext)
 
-    def store_data_stream(self, bucket_name, minio_path, data, length):
+    def store_data_stream(self, bucket_name, minio_path, data, length, metadata):
         """
             Create bucket
             Store object in minio
         """
         try:
-            MinioClient.upload_stream(bucket_name=bucket_name, name=minio_path, data=data, length=length)
+            MinioClient.upload_stream(bucket_name=bucket_name, name=minio_path, data=data, length=length,
+                                      metadata=metadata)
         except Exception as error:
             logger.error(f'BundleZip:store:Error while processing file {error}')
             raise error

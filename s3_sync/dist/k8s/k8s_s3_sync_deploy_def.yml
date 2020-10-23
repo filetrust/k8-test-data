@@ -1,0 +1,57 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: s3-sync
+  name: s3-sync-deploy
+  namespace: k8-test-data
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: s3-sync
+  template:
+    metadata:
+      labels:
+        app: s3-sync
+    spec:
+      containers:
+      - name: s3-sync-pod
+        image: karthyuom/k8-s3-sync:1.0 #TODO: To be updated based on the docker registry and the image version
+        stdin: true
+        tty: true
+        env: #TODO: Update the below settings when necessary
+        - name: PYTHONUNBUFFERED
+          value: "0"
+        - name: MINIO_URL
+          value: http://192.168.99.1:9001
+        - name: MINIO_ACCESS_KEY
+          value: "minio1"
+        - name: MINIO_SECRET_KEY
+          value: "minio1@123"
+        - name: "S3_ENDPOINT"
+          value: "https://s3.ca-central-1.amazonaws.com/"
+        - name: "S3_ACCESS_KEY_ID"
+          value: ""
+        - name: "S3_SECRET_ACCESS_KEY"
+          value: ""
+        - name: "S3_REGION"
+          value: ""
+        - name: "S3_BUCKET"
+          value: "k8-test-data-s3"
+---
+
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: s3-sync-svc
+  namespace: k8-test-data
+spec:
+  ports:
+    - port: 5004
+      targetPort: 5004
+  selector:
+    app: s3-sync
+

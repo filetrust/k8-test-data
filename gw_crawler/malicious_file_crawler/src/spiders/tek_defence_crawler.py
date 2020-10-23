@@ -7,7 +7,7 @@ import scrapy
 from scrapy.loader import ItemLoader
 from src.items import MaliciousFileCrawlerItem
 from src.spiders.scraper import Scraper
-
+from src.utils.read_config import ConfigReader
 logger = logging.getLogger(__name__)
 
 
@@ -18,9 +18,10 @@ class TekDefenceScraper(Scraper):
     """
     name = 'tekdefence'
 
-    def __init__(self, config=None, data=None):
-        super(TekDefenceScraper, self).__init__()
-        self.cfg = config
+    def __init__(self, config=None, data=None, *args, **kwargs):
+        super(TekDefenceScraper, self).__init__(*args, **kwargs)
+        self.cfg = ConfigReader(config.upper()).read_config()
+        # self.cfg = config
         self.login_url = self.cfg.get('login_url')
         self.start_urls = [self.login_url]
         self.file_page_url = self.cfg.get("file_page_url")

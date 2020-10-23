@@ -22,29 +22,11 @@ services:
     ports:
       - 5672:5672
       - 15672:15672
-
-  rabbitmq-publisher:
-    image: rabbitmq-publisher:1.0
-    build:
-      context: .
-      dockerfile: rabbitmq_publisher/Dockerfile
-    env_file:
-      - rabbitmq_publisher/.env
-    depends_on:
-      - minio
-      - rabbitmq
-
-  rabbitmq-receiver:
-    image: rabbitmq-receiver:1.0
-    build:
-      context: .
-      dockerfile: rabbitmq_receiver/Dockerfile
-    env_file:
-      - rabbitmq_receiver/.env
-    depends_on:
-      - minio
-      - rabbitmq
-      - rabbitmq-publisher
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:15672"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   storage-adapter:
     image: storage:1.0
@@ -58,6 +40,19 @@ services:
       - 5005:5002
 
 
+  scrapyd:
+    image: scrapyd
+    volumes:
+      - data1-1:/data
+    build:
+      context: .
+      dockerfile: gw_crawler/malicious_file_crawler/Dockerfile
+    env_file:
+      - gw_crawler/.env
+    ports:
+      - 6800:6800
+      - 6801:6801
+
   glasswall-crawler:
     image: glasswallcrawler:1.0
     build:
@@ -69,6 +64,25 @@ services:
       - 5002:5000
     depends_on:
       - minio
+      - rabbitmq
+      - scrapyd
+
+  rabbitmq-process:
+    image: rabbit-mq:1.0
+    build:
+      context: .
+      dockerfile: rabbitmq/Dockerfile
+    env_file:
+      - rabbitmq/.env
+    ports:
+      - 50056:50056
+      - 5006:5006
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+      - minio
+    links:
+      - rabbitmq
 
   k8-file-distribution:
     image: k8-file-distribution
@@ -108,6 +122,18 @@ services:
     ports:
       - 5003:5003
 
+
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: test-data
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: toor
+    volumes:
+      - ./db/postgres:/var/lib/postgresql/data
+    ports:
+     - 5432:5432
+
   k8-s3-sync:
     image: k8-s3-sync
     env_file:
@@ -119,10 +145,22 @@ services:
       - 5004:5004
     links:
       - minio
+      - postgres
     depends_on:
       - minio
+      - postgres
 
+  gov-uk-migration:
+    image: gov-uk-migration
+    build:
+      context: .
+      dockerfile: gov_uk_file_migration/Dockerfile
+    env_file:
+      - gov_uk_file_migration/.env
+    depends_on:
+      - minio
+      - k8-file-processor
 
 volumes:
-  data1-1: 
+  data1-1:
   

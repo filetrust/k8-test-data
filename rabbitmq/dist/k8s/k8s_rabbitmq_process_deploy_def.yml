@@ -1,0 +1,74 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: rabbitmq-process
+  name: rabbitmq-process-deploy
+  namespace: k8-test-data
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: rabbitmq-process
+  template:
+    metadata:
+      labels:
+        app: rabbitmq-process
+    spec:
+      containers:
+      - name: rabbitmq-process-pod
+        image: karthyuom/rabbit-mq:1.5 #TODO: To be updated based on the docker registry and the image version
+        stdin: true
+        tty: true
+        env: #TODO: Update the below settings when necessary
+        - name: PYTHONUNBUFFERED
+          value: "0"
+        - name: MINIO_ENDPOINT
+          value: 192.168.99.1:9001
+        - name: MINIO_ACCESS_KEY_ID
+          value: "minio1"
+        - name: MINIO_SECRET_ACCESS_KEY
+          value: "minio1@123"
+        - name: MINIO_SECURE
+          value: "False"
+        - name: MINIO_BUCKET
+          value: "zip"
+        - name: MQ_USERNAME
+          value: "guest"
+        - name: MQ_PASSWORD
+          value: "guest"
+        - name: MQ_HOST
+          value: "192.168.99.1"
+        - name: MQ_PORT
+          value: "5672"
+        - name: MQ_EXCHANGE
+          value: ""
+        - name: MQ_EXCHANGE_TYPE
+          value: ""
+        - name: MQ_QUEUE
+          value: "queue01"
+        - name: MQ_ROUTING_KEY
+          value: "queue01"
+        - name: "file_processor_api"
+          value: "http://file-processor-svc.k8-test-data.svc.cluster.local:5000/process"
+        - name: "s3_sync_api"
+          value: "http://s3-sync-svc.k8-test-data.svc.cluster.local:5004/tos3"
+        ports:
+        - containerPort: 5006
+          protocol: TCP
+---
+
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: rabbitmq-process-svc
+  namespace: k8-test-data
+spec:
+  ports:
+    - port: 5006
+      targetPort: 5006
+  selector:
+    app: rabbitmq-process
+

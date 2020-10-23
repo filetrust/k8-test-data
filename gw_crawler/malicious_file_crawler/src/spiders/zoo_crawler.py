@@ -8,7 +8,7 @@ from itemloaders import ItemLoader
 from lxml import html as html_xml
 from src.items import MaliciousFileCrawlerItem
 from src.spiders.scraper import Scraper
-
+from src.utils.read_config import ConfigReader
 logger = logging.getLogger(__name__)
 
 
@@ -20,9 +20,10 @@ class ZooScraper(Scraper):
     """
     name = 'zoo'
 
-    def __init__(self, config=None, data=None):
-        super(ZooScraper, self).__init__()
-        self.cfg = config
+    def __init__(self, config=None, data=None, *args, **kwargs):
+        super(ZooScraper, self).__init__(*args, **kwargs)
+        self.cfg = ConfigReader(config.upper()).read_config()
+        # self.cfg = config
         self.file_urls = self.cfg.get('zoo_url')
         self.base_url = self.cfg.get('base_url')
 
@@ -51,6 +52,8 @@ class ZooScraper(Scraper):
             html = html_xml.fromstring(response.text)
 
             links = html.xpath("//a[@class='js-navigation-open link-gray-dark']/@href")
+            print('jjdd')
+            print(len(links))
             # url=self.base_url+links[3]
             for url in links:
                 git_url = self.base_url + url

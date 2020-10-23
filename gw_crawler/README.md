@@ -1,4 +1,4 @@
-#GW Crawler
+# GW Crawler
 
 ## Scraper Sites 
 
@@ -23,7 +23,7 @@
 **Tek Defence** : http://www.tekdefense.com/downloads/malware-samples/
   - Immediate access
 
-###Update .env 
+## Usage  
 
     Create virusshare api key from https://virusshare.com/apiv2_reference , 
     
@@ -31,15 +31,15 @@
     
     Update .env (see .env_sample)
     
-
-### Usage
+## Build
 
 ```
     docker build -t glasswallcrawler:1.0 .
      
-    docker run --env-file .env glasswallcrawler:1.0 
-
 ```
+## To push
+
+    `docker push <username>/glasswallcrawler:1.0`
 
 
 

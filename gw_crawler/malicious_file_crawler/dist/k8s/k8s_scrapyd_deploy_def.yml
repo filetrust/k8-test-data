@@ -1,0 +1,39 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: scrapyd
+  name: scrapyd-deploy
+  namespace: k8-test-data
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: scrapyd
+  template:
+    metadata:
+      labels:
+        app: scrapyd
+    spec:
+      containers:
+      - name: scrapyd-pod
+        image: karthyuom/scrapyd:1.0 #TODO: To be updated based on the docker registry and the image version
+        ports:
+        - containerPort: 6800
+          protocol: TCP
+---
+
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: scrapyd-svc
+  namespace: k8-test-data
+spec:
+  ports:
+    - port: 6800
+      targetPort: 6800
+  selector:
+    app: scrapyd
+

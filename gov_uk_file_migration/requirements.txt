@@ -1,0 +1,5 @@
+boto3==1.15.16
+minio==6.0.0
+requests==2.22.0
+python-dotenv
+

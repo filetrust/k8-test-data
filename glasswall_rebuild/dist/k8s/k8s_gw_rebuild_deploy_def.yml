@@ -1,0 +1,39 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: glasswall-rebuild
+  name: glasswall-rebuild-deploy
+  namespace: k8-test-data
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: glasswall-rebuild
+  template:
+    metadata:
+      labels:
+        app: glasswall-rebuild
+    spec:
+      containers:
+      - name: glasswall-rebuild-pod
+        image: karthyuom/glasswall-rebuild #TODO: To be updated based on the docker registry and the image version
+        ports:
+        - containerPort: 5003
+          protocol: TCP
+---
+
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: glasswall-rebuild-svc
+  namespace: k8-test-data
+spec:
+  ports:
+    - port: 5003
+      targetPort: 5003
+  selector:
+    app: glasswall-rebuild
+

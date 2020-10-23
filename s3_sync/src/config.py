@@ -21,3 +21,5 @@ class Config(object):
     MINIO_URL = get_envar("MINIO_URL", required=True)
     MINIO_ACCESS_KEY = get_envar("MINIO_ACCESS_KEY", required=True)
     MINIO_SECRET_KEY = get_envar("MINIO_SECRET_KEY", required=True)
+
+    SQLALCHEMY_DATABASE_URI = get_envar("DB_URL", required=True)

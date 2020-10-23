@@ -9,6 +9,7 @@
 import os
 
 from src.constants import DOWNLOAD_PATH
+from datetime import datetime
 
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
 from dotenv import load_dotenv
@@ -19,13 +20,7 @@ PROJECT_NAME = 'malicious_file_crawler'
 # Define JOBDIR path for pausing and resuming crawls
 #JOB_DIR = 'crawlers/spider-1'
 
-from datetime import datetime
-HTTPCACHE_ENABLED = True
-HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 date = datetime.strftime(datetime.now(), '%Y%m%d')
-
-HTTPCACHE_EXPIRATION_SECS = 60 * 60 * 24 * 7
-HTTPCACHE_DIR = 'httpcache'
 
 EXTENSIONS = {
    'scrapy_dotpersistence.DotScrapyPersistence': 0,
@@ -86,3 +81,27 @@ FILES_STORE = DOWNLOAD_PATH
 # Uncomment this when MINIO service is running
 # max download size of 5gb
 DOWNLOAD_MAXSIZE = 5368709120
+
+# scrapyd endpoint
+SCRAPYD_ENDPOINT =  os.environ.get('scrapyd_endpoint','http:0.0.0.0:6800/')
+
+XTENSIONS = {
+
+    'scrapy_dotpersistence.DotScrapyPersistence': 0
+}
+
+DOTSCRAPY_ENABLED = True
+
+ADDONS_AWS_ACCESS_KEY_ID = os.environ.get("ADDONS_AWS_ACCESS_KEY_ID")
+ADDONS_AWS_SECRET_ACCESS_KEY = os.environ.get("ADDONS_AWS_SECRET_ACCESS_KEY")
+ADDONS_AWS_USERNAME =  os.environ.get("ADDONS_AWS_USERNAME")
+ADDONS_S3_BUCKET = os.environ.get("ADDONS_S3_BUCKET")
+
+
+HTTPCACHE_ENABLED = True
+HTTPCACHE_EXPIRATION_SECS = 60 * 60 * 24 * 7
+HTTPCACHE_DIR = 'httpcache'
+HTTPCACHE_IGNORE_HTTP_CODES = []
+HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+
+

@@ -1,4 +1,3 @@
-import json as j
 import logging
 import os
 import sys
@@ -31,10 +30,9 @@ class MinioClient:
             logger.error(f'MinioClient : upload_file : {e} ')
 
     @staticmethod
-    def upload_stream(bucket_name, name, data,length,server_base_url=server_base_url):
+    def upload_stream(bucket_name, name, data, length, metadata, server_base_url=server_base_url):
         try:
-            params = {'bucket_name': bucket_name,'name': name,'length': length,}
-            return requests.post(server_base_url + "upload_stream", data=data,params=params)
+            params = {'bucket_name': bucket_name, 'name': name, 'length': length, 'metadata': metadata}
+            return requests.post(server_base_url + "upload_stream", data=data, params=params)
         except Exception as e:
             logger.error(f'MinioClient : upload_stream : {e} ')
-

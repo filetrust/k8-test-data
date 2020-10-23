@@ -16,27 +16,32 @@ If you are working on this project via Upwork, see also our [Upwork Rules of Eng
 
 - The final objective is to be able to to support - 4 Million files with an average file size of 10 Mbs. However at start we will start with Github repo. 
 
-**Process Flow & Architecture**
-  For each type of work, kubernetes (K8)  PODs of that type will be created. The orchestration of "POD type" clusters through Event driven architecture will complete  the process flow. 
-  - **K8 - Scrapper Pod **
+**Process Flow & Architecture**  
+  - For each type of work, kubernetes (K8)  PODs of that type will be created. The orchestration of "POD type" clusters through Event driven architecture will complete  the process flow.
+  - All the kubernetes resources respective to this project will be created under a namespace called "***k8-test-data***" to isolate from other project deployments.
+
+
+  - **K8 - Scrapper Pod**
   
      ![Scrapper flow](./img/k8-test-data_v1.4_scrapper.png)
      - The original zip file will be downloaded by scrapper along with metadata.
      - Persist the scrap log in cloud.
      - Base scrapper should have batch scrapping functionality.
      - Push the downloaded zip file to MinIO  service with GUID as filename of the zip file.
+     - This module can be deployed as a CronJob (batch process) resource in Kubernetes cluster, which can be scheduled to do crawling job at specific timings. (**TBC**: whether to deploy as a Service to be scheduled externally.)
      
-   - **K8 MinIO Storage Pod **
+  - **K8 MinIO Storage Pod**
    
-   ![MinIO storage POD](./img/k8-test-data_v1.4_MinIO_storage.png)
+      ![MinIO storage POD](./img/k8-test-data_v1.4_MinIO_storage.png)
      - The original zip file gets downloaded and metadata collected like URL, date created etc.
      - Communicates with MinIO docker and stores the file.
      - Put the Job in Rabbit MQ via MQ handler POD with GUID as filename for file processing by K8-core POD..
-     - Put the S3 synchronization job in MQ. 
+     - Put the S3 synchronization job in MQ.
+     - Minio and rabbitmq can be deplyoed under a common namespace (say ***k8-common***) that can even be used by every other projects within Glasswall.
      
   - **K8 core POD**
   
-  ![enter image description here](./img/k8-test-data_v1.4_core.png)
+      ![enter image description here](./img/k8-test-data_v1.4_core.png)
      - On arrival in MQ, download the original zip file from Minio. Unzip it.
      - Create a folder, with name as **GUID or hash**.
      - Do malicious check from virustotal. (will be handled through K8 POD type 2.1 )
@@ -78,13 +83,13 @@ Malware Public Repositories ( Proceed with caution when handling live malware) :
 Public malware reference - https://cyberlab.pacific.edu/resources/malware-samples-for-students
 Note :  http://contagiodump.blogspot.com/ in above public reference not implemented since it is paid service and password for malware zip is not availble
 
-### Build
+## Build
 
-* Set .env file in each service
+* Set .env file in each service(refer env.zip)
 
-`docker build -t rabbitmq-receiver:1.0 rabbitmq_receiver`
+`docker build -t rabbit-mq:1.0 rabbitmq`
 
-`docker build -t rabbitmq-publisher:1.0 rabbitmq_publisher`
+`docker build -t scrapyd gw_crawler/malicious_file_crawler`
 
 `docker build -t glasswallcrawler:1.0 gw_crawler`
 
@@ -94,15 +99,43 @@ Note :  http://contagiodump.blogspot.com/ in above public reference not implemen
 
 `docker build -t glasswall-rebuild  glasswall_rebuild`
 
-`docker build -t k8-s3-sync  s3_sync`
+`docker build -t k8-s3-sync s3_sync`
 
 `docker build -t storage:1.0 storage`
 
 
-### Run
+## Run
+`docker-compose up -d scrapyd`
+
+`docker-compose up -d rabbitmq`
 
 `docker-compose up`
 
-### Run security check
+## Run security check
 
 `python3 -m bandit --skip B605 -ll -r .`
+
+
+## Kubernetes Deployment
+### Deployment High-Level Architecture
+![K8 Deployment](./img/K8s-Architecture-k8-test-data_v1.png)
+
+### K8 Deployment Steps
+a. Build docker images and push to the registry.  
+      Go to each module and run the following script inside the _dist/scripts/_
+
+  ```./docker_build.sh```
+
+  (Make sure to update the docker registry and docker version)
+
+b. Go to Kubernetes master node (K8 Cluste Setup is ongoing, update the Master Node details when it is ready), and execute the following script inside the _dist/scripts/_ for each module,
+  
+  ```./k8s*deploy.sh```
+
+  (Make sure to update the env settings, and the docker image as per the step 1 in _dist/k8s/k8s*deploy_def.yml_).  
+
+## K8 ELK Stack Centralized Logging
+Setup a centralized logging system to collect logs from Pods running in a Kubernetes cluster, to send the log data into Elasticsearch, and to finally visualize the log data in Kibana using various interactive real-time visualizations. This can be achieved by setting up Elasticsearch, Filebeat and Kibana in Kubernetes.
+
+In order to deploy this setup, grab the entire folder _k8_elk_logging_, and execute the following script:
+```./dist/scripts/k8s_elk_deploy.sh```

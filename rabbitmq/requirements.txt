@@ -1,0 +1,6 @@
+pika==1.1.0
+minio==6.0.0
+python-dotenv == 0.13.0
+schedule==0.6.0
+requests==2.23.0
+Flask==1.1.2

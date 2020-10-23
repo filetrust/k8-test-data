@@ -1,0 +1,48 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: minio-storage
+  name: minio-storage-deploy
+  namespace: k8-test-data
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: minio-storage
+  template:
+    metadata:
+      labels:
+        app: minio-storage
+    spec:
+      containers:
+      - name: minio-storage-pod
+        image: karthyuom/storage:1.0 #TODO: To be updated based on the docker registry and the image version
+        env: #TODO: Update the below settings when necessary
+        - name: MINIO_HOSTNAME
+          value: 192.168.99.1:9001
+        - name: MINIO_ACCESS_KEY_ID
+          value: "minio1"
+        - name: MINIO_SECRET_ACCESS_KEY
+          value: "minio1@123"
+        - name: "rabbit_mq_api"
+          value: "http://rabbitmq-process-svc.k8-test-data.svc.cluster.local:5006/publish"
+        ports:
+        - containerPort: 5002
+          protocol: TCP
+---
+
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: minio-storage-svc
+  namespace: k8-test-data
+spec:
+  ports:
+    - port: 5002
+      targetPort: 5002
+  selector:
+    app: minio-storage
+

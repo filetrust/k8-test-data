@@ -8,7 +8,7 @@ import scrapy
 from scrapy.loader import ItemLoader
 from src.items import MaliciousFileCrawlerItem
 from src.spiders.scraper import Scraper
-
+from src.utils.read_config import ConfigReader
 logger = logging.getLogger(__name__)
 
 
@@ -27,9 +27,10 @@ class MalShareScraper(Scraper):
     # Allow duplicate url request (we will be crawling "page 1" twice)
     # custom_settings will only apply these settings in this spider
 
-    def __init__(self, config=None, data=None):
-        super(MalShareScraper, self).__init__()
-        self.cfg = config
+    def __init__(self, config=None, data=None, *args, **kwargs):
+        super(MalShareScraper, self).__init__( *args, **kwargs)
+        self.cfg = ConfigReader(config.upper()).read_config()
+        #self.cfg = config
         self.API_KEY = self.cfg.get('api_key',vars=os.environ)
         self.API_URL = self.cfg.get('api_base_url')
         self.base_url = self.cfg.get('base_url')
@@ -38,17 +39,20 @@ class MalShareScraper(Scraper):
     def start_requests(self):
         try:
             logger.info(f'Site url : {self.base_url}')
-            yield scrapy.Request(url=self.base_url, callback=self.parser)
+            yield scrapy.Request(url="http://google.com", callback=self.parser)
         except Exception as err:
             logger.error(f'MalShareScraper : start_requests : {err}')
             raise err
 
     def parser(self, response):
         try:
+            logger.info(f'MalShareScraper : response : {response}')
             hashes = self.get_hases()
             for _hash in hashes:
                 logger.info(f'MalShareScraper : parser : {_hash}')
                 details = self.getfiledetails(file_hash=_hash)
+                logger.info(f'details of file {details}')
+                logger.info(f'F type {details["F_TYPE"]}')
                 url = self.url.format(self.API_KEY, _hash)
                 loader = ItemLoader(item=MaliciousFileCrawlerItem())
                 loader.add_value('file_urls', url)

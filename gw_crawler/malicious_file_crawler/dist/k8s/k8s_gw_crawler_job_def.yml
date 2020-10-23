@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gw-crawler-job
+  namespace: k8-test-data
+spec:
+  template:
+    spec:
+      containers:
+      - name: gw-crawler-pod
+        image: karthyuom/glasswallcrawler:1.0 #TODO: To be updated based on the docker registry and the image version
+        env: #TODO: Update the below settings when necessary
+        - name: MINIO_URL
+          value: 192.168.99.1:9001
+        - name: MINIO_ACCESS_KEY
+          value: "minio1"
+        - name: MINIO_SECRET_KEY
+          value: "minio1@123"
+        - name: "SCRAPY_PROJECT_ID"
+          value: "malicious_file_crawler"
+        - name: "SCRAPE_SITES"
+          value: "MALSHARE" #,DASMAL,TEKDEF,ZOO,VIRUSSHARE
+        - name: "MALSHARE_API_KEY"
+          value: ""
+        - name: "VIRUSSHARE_API_KEY"
+          value: ""
+        - name: "storage_adapter_url"
+          value: "http://minio-storage-svc.k8-test-data.svc.cluster.local:5002/"
+        - name: "scrapyd_endpoint"
+          value: "http://scrapyd-svc.k8-test-data.svc.cluster.local:6800"
+      restartPolicy: Never

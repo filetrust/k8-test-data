@@ -1,0 +1,48 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: file-distribution
+  name: file-distribution-deploy
+  namespace: k8-test-data
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: file-distribution
+  template:
+    metadata:
+      labels:
+        app: file-distribution
+    spec:
+      containers:
+      - name: file-distribution-pod
+        image: karthyuom/k8-file-distribution:1.1 #TODO: To be updated based on the docker registry and the image version
+        env: #TODO: Update the below settings when necessary
+        - name: "PYTHONUNBUFFERED"
+          value: "0"
+        - name: MINIO_URL
+          value: http://192.168.99.1:9001
+        - name: MINIO_ACCESS_KEY
+          value: "minio1"
+        - name: MINIO_SECRET_KEY
+          value: "minio1@123"
+        ports:
+        - containerPort: 5001
+          protocol: TCP
+---
+
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: file-distribution-svc
+  namespace: k8-test-data
+spec:
+  ports:
+    - port: 5001
+      targetPort: 5001
+  selector:
+    app: file-distribution
+

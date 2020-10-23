@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import time
 
 import requests
 
@@ -11,14 +12,14 @@ import scrapy
 from src.spiders.scraper import Scraper
 from scrapy.loader import ItemLoader
 from src.items import MaliciousFileCrawlerItem
-
+from src.utils.read_config import ConfigReader
 logger = logging.getLogger(__name__)
 
 class VirusShareScraper(Scraper):
     """
         virus share api https://virusshare.com/apiv2/
         hash url https://virusshare.com/hashfiles/unpacked_hashes.md5
-        Get the malware url using hashes and api and send it to storage
+        Get the virus share url using hashes and api and send it to storage
     """
     name = 'virusshare'
     # Allow duplicate url request (we will be crawling "page 1" twice)
@@ -26,12 +27,15 @@ class VirusShareScraper(Scraper):
     custom_settings = {
         'DUPEFILTER_CLASS': 'scrapy.dupefilters.BaseDupeFilter',
         'CONCURRENT_REQUESTS': 1,
-        'DOWNLOAD_DELAY': 15,
+        'CONCURRENT_REQUESTS_PER_DOMAIN' : 1,
+        'DOWNLOAD_DELAY': 16,
+
     }
 
-    def __init__(self, config=None, data=None):
-        super(VirusShareScraper, self).__init__()
-        self.cfg = config
+    def __init__(self, config=None, data=None, *args, **kwargs):
+        super(VirusShareScraper, self).__init__(*args, **kwargs)
+        self.cfg = ConfigReader(config.upper()).read_config()
+        # self.cfg = config
         self.base_url = self.cfg.get('base_url')
         self.url = self.cfg.get('virusshare_url')
         self.hash_url = self.cfg.get('virusshare_hash_url')
@@ -45,11 +49,10 @@ class VirusShareScraper(Scraper):
         try:
             logger.info(f'Site url : {self.base_url}')
             hashes = self.scrape_hashes()
-
             for _hash in hashes:
                 yield scrapy.Request(url=self.base_url, callback=self.parser, meta={'hash': _hash})
         except Exception as error:
-            logger.error(f"MalShareScraper:start_requests: {error}")
+            logger.error(f"VirusShareScraper:start_requests: {error}")
             raise error
 
     def parser(self, response):
@@ -62,10 +65,16 @@ class VirusShareScraper(Scraper):
                 url = self.url.format(self.request_mode, self.api_key, response.meta['hash'])
                 file_details_url = self.url.format("file", self.api_key, response.meta['hash'])
                 details = VirusShareScraper.get(file_details_url)
-                json_str = details.content
-                json_details = json.loads(json_str)
+                time.sleep(16)
                 loader = ItemLoader(item=MaliciousFileCrawlerItem())
-                loader.add_value('extension', json_details['exif']['FileTypeExtension'])
+                if details.status_code==200 :
+                    json_str = details.content
+                    try:
+                        if json_str :
+                            json_details = json.loads(json_str)
+                            loader.add_value('extension', json_details['exif']['FileTypeExtension'])
+                    except:
+                        pass
                 loader.add_value('file_urls', url)
                 loader.add_value('hash_api_url', self.url.format(self.request_mode, None, response.meta['hash']))
                 yield loader.load_item()

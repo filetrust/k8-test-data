@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 
 logger = logging.getLogger("GW:file_processor")
 
@@ -12,7 +12,6 @@ def get_envar(k, required=True):
         exit(msg)
     return val
 
-
 class Config(object):
     download_path = "/usr/src/app/storage"
     MINIO_URL = get_envar("MINIO_URL")
@@ -23,3 +22,8 @@ class Config(object):
 
     MQ_HOST = get_envar("MQ_HOST")
     MQ_QUEUE = get_envar("MQ_QUEUE")
+
+    GW_REBUILD_MODE = {
+        'xml_report': 0,
+        'file': 1,
+    }

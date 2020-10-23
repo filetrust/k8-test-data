@@ -4,7 +4,9 @@
 
 `docker build -t glasswall-rebuild .`
 
-`docker-compose up`
+### To push
+
+`docker push <username>/glasswall-rebuild`
 
 ### Endpoints 
 

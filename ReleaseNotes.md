@@ -1,5 +1,47 @@
 #k8-test-data
 
+# Release 0.3
+## Date : 14/10/2020 [github commit link](https://github.com/k8-proxy/k8-test-data/commit/1f4ec83730357d62e80d494eb12b54a52c1f1c44)
+           
+
+* Integration of Distribution Api , GW_crawler , Storage , Rabbit mq , glass_rebuild , file processor and s3 sync modules
+
+* File processing bug fixes, suppport for icap_rebuild file and xml report, fixed processing of zip files
+
+* Exception handling in all places
+
+* Sy sync and creating folder in s3 and storing files under extension name as folder name
+
+* The integration is tested and imporved efficiency
+
+* Deployment of codebase in ec2 instance
+
+* Bundle zip will contain metadata.json, rebuild_xml , rebuild file , virustotal report, original file inside zip file 
+
+* Gloabl hashing is done and the files in bundle zip are stored with hash name
+
+* Collection of 10000 files in glasswall s3 under bucket k8-test-data ( in progress )
+
+* Refactoring of api calls configartable from .env files
+
+### ToDo Tasks
+
+* Configaration ELK for logging
+
+* Batch processing of crawler
+
+* Reaching 4million target
+
+* Testing the code for large data
+
+* Completing pending SOW tickets
+
+* Data persistance
+
+* Multilevel compressed test file with malicious content.
+
+* Test files with different type of supported compression Zip, 7z, gz, tar, rar.
+
 
 # Release 0.2
 ## Date : 6/10/2020
@@ -94,7 +136,7 @@
 
         Configaration of ELK for logs and cache
 
-        Please put TODO to change this to selectConnection instead of BlockingConnection.
+        selectConnection instead of BlockingConnection in rabbit mq.
 
         Exception code for GW rebuild API failure, should be there in Ashish code.
 

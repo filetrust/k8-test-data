@@ -7,7 +7,7 @@ from lxml import html as html_xml
 from scrapy.loader import ItemLoader
 from src.items import MaliciousFileCrawlerItem
 from src.spiders.scraper import Scraper
-
+from src.utils.read_config import ConfigReader
 logger = logging.getLogger(__name__)
 
 
@@ -18,9 +18,10 @@ class DasMalwerkScraper(Scraper):
     """
     name = 'dasmalwerk'
 
-    def __init__(self, config=None, data=None):
-        super(DasMalwerkScraper, self).__init__()
-        self.cfg = config
+    def __init__(self, config=None, data=None, *args, **kwargs):
+        super(DasMalwerkScraper, self).__init__( *args, **kwargs)
+        self.cfg = ConfigReader(config.upper()).read_config()
+        #self.cfg = config
         self.file_urls = self.cfg.get('url')
 
     def start_requests(self):
@@ -46,6 +47,8 @@ class DasMalwerkScraper(Scraper):
             html = html_xml.fromstring(response.text)
             file_download_link_elements = html.xpath("//tr//td[2]/a/@href")
             loader = ItemLoader(item=MaliciousFileCrawlerItem())
+            print('kks')
+            print(len(file_download_link_elements))
             for link in file_download_link_elements:
                 # self.state['items_count'] = self.state.get('items_count', 0) + 1
                 loader.add_value('file_urls', link)

@@ -50,11 +50,19 @@ class MinioAdapter(BaseStorageAdapter):
             raise e
 
     def get_bucket_list(self):
-        bucket_list = self._client.list_buckets()
+        bucket_list=[]
+        list = self._client.list_buckets()
+        for l in list:
+            bucket_list.append(l.name)
         return bucket_list
 
     def get_all_files(self, bucket_name):
-        pass
+        file_list=[]
+        list=self._client.list_objects(bucket_name=bucket_name)
+        for l in list:
+            file_list.append(l.object_name)
+
+        return file_list
 
     def upload_file(self, bucket_name, file_name, file_path):
         if (not self._client.bucket_exists(bucket_name)):
@@ -66,17 +74,24 @@ class MinioAdapter(BaseStorageAdapter):
             self.logger.error(e)
             raise Exception(e)
 
-    def upload_data_stream(self, bucket_name, file_name, data_stream, length):
-
-        if (not self._client.bucket_exists(bucket_name)):
+    def upload_data_stream(self, bucket_name, file_name, data_stream, length, metadata):
+        if not self._client.bucket_exists(bucket_name):
             self._client.make_bucket(bucket_name=bucket_name)
-
         try:
-
-            self._client.put_object(bucket_name=bucket_name, object_name=file_name, data=data_stream, length=length)
+            self._client.put_object(bucket_name=bucket_name, object_name=file_name, data=data_stream, length=length,
+                                    metadata=metadata)
         except ResponseError as err:
             self.logger.error(err)
             raise err
+
+    def download_file(self, bucket_name, object_name,file_path):
+        try:
+            if (self._client.bucket_exists(bucket_name)):
+                self._client.fget_object(bucket_name=bucket_name, object_name=object_name, file_path=file_path)
+        except Exception as e:
+            self.logger.error(e)
+            raise e
+
 
     def download_all_files(self, bucket_name, download_path):
         try:

@@ -1,0 +1,6 @@
+boto3==1.14.57
+python-dotenv == 0.13.0
+minio==6.0.0
+py7zr==0.10.1
+patool==1.12
+requests==2.23.0

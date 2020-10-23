@@ -17,7 +17,7 @@ class Config(object):
     S3_ACCESS_KEY_ID = get_envar("S3_ACCESS_KEY_ID", required=True)
     S3_SECRET_ACCESS_KEY = get_envar("S3_SECRET_ACCESS_KEY", required=True)
     S3_REGION = get_envar("S3_REGION", required=False)
-    
+
     # Set Minio Credentials
     MINIO_ENDPOINT = get_envar("MINIO_ENDPOINT", required=True)
     MINIO_ACCESS_KEY_ID = get_envar("MINIO_ACCESS_KEY_ID", required=True)
