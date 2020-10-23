@@ -105,6 +105,7 @@ class Processor:
         try:
             if 'x-amz-meta-malicious' in self.minio_meta.metadata:
                 self.isMalicious = literal_eval(self.minio_meta.metadata['x-amz-meta-malicious'])
+                logger.info(f"isMalicious : {self.isMalicious}")
             if not self.isMalicious == False:
                 logger.info("checking malicious with VirusTotal")
                 time.sleep(30)
@@ -263,7 +264,7 @@ class Processor:
 
     def send_mq(self):
         try:
-            logger.info("sending file to rabbitmq for s3 sync")
+            logger.info("sending file to rabbitmq for s3 sync, %s" % self.directory)
             name = self.directory.split("/")[-1]
             payload = {
                 "s3_bucket": self.ext,

@@ -98,6 +98,7 @@ Note :  http://contagiodump.blogspot.com/ in above public reference not implemen
 
 `docker build -t storage:1.0 storage`
 
+`docker build -t gov-uk-migration gov_uk_file_migration`
 
 ## Run
 `docker-compose up -d scrapyd`
