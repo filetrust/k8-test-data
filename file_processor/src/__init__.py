@@ -131,11 +131,11 @@ class Processor:
                 with open(file_path, mode='rb') as file:  # b is important -> binary
                     fileContent = file.read()
 
-                original_hash = hashlib.sha1(fileContent).hexdigest()
+                original_hash = hashlib.sha256(fileContent).hexdigest()
                 self.hash = original_hash
                 logger.info(f""
                             f" : {original_hash}")
-                # self.hash = hashlib.sha1(str(self.filename).encode()).hexdigest()
+                # self.hash = hashlib.sha256(str(self.filename).encode()).hexdigest()
 
                 # Create directory for this file
                 self.directory = _dir + "/" + self.hash
@@ -147,7 +147,7 @@ class Processor:
                 else:
                     self.file_path = self.directory + "/" + self.hash
 
-                logger.info(f'renaming of file {file_path} to {self.file_path} after sha1 hashing')
+                logger.info(f'renaming of file {file_path} to {self.file_path} after sha256 hashing')
                 os.rename(file_path, self.file_path)
 
             else:
@@ -155,11 +155,11 @@ class Processor:
                 with open(file_path, mode='rb') as file:  # b is important -> binary
                     fileContent = file.read()
 
-                original_hash = hashlib.sha1(fileContent).hexdigest()
+                original_hash = hashlib.sha256(fileContent).hexdigest()
                 self.hash = original_hash
                 logger.info(f""
                             f" : {original_hash}")
-                # self.hash = hashlib.sha1(str(self.filename).encode()).hexdigest()
+                # self.hash = hashlib.sha256(str(self.filename).encode()).hexdigest()
 
                 # Create directory for this file
                 self.directory = _dir + "/" + self.hash
@@ -171,7 +171,7 @@ class Processor:
                 else:
                     self.file_path = self.directory + "/" + self.hash
 
-                logger.info(f'renaming of file {file_path} to {self.file_path} after sha1 hashing')
+                logger.info(f'renaming of file {file_path} to {self.file_path} after sha256 hashing')
                 os.rename(file_path, self.file_path)
 
         except Exception as err:
@@ -269,7 +269,7 @@ class Processor:
                 logger.info(f"status of rebuild file {response.status_code}")
                 if status == 200:
                     file = response.content
-                    self.rebuild_hash = hashlib.sha1(file).hexdigest()
+                    self.rebuild_hash = hashlib.sha256(file).hexdigest()
                     self.gw_rebuild_file_status = True
                     with open(self.directory + f"/rebuild_{rebuild_file_name}", "wb") as fp:
                         fp.write(file)
