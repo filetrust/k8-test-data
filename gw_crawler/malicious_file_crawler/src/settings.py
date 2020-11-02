@@ -85,10 +85,6 @@ DOWNLOAD_MAXSIZE = 5368709120
 # scrapyd endpoint
 SCRAPYD_ENDPOINT =  os.environ.get('scrapyd_endpoint','http:0.0.0.0:6800/')
 
-XTENSIONS = {
-
-    'scrapy_dotpersistence.DotScrapyPersistence': 0
-}
 
 DOTSCRAPY_ENABLED = True
 
