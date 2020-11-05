@@ -171,9 +171,14 @@ def create_app():
         try:
             dir=os.path.join(app.root_path, "download")
             if os.path.exists(dir):
+                logger.error((f"Storage: deleting s3_file_download src :  file {dir}"))
                 shutil.rmtree(dir)
-            else :
+                logger.error((f"Storage: deleted s3_file_download src :  file {dir}"))
+            if not os.path.exists(dir):
+                logger.error((f"Storage: creating s3_file_download src :  file {dir}"))
                 os.makedirs(dir)
+                logger.error((f"Storage: creating s3_file_download src :  file {dir}"))
+
         except Exception as err:
             logger.error((f"Storage: s3_file_download :  file {err}"))
             pass
