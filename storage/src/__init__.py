@@ -170,8 +170,9 @@ def create_app():
         """ download single file from s3 given the key. """
         try:
             dir=os.path.join(app.root_path, "download")
-            shutil.rmtree(dir)
-            if not os.path.exists(dir):
+            if os.path.exists(dir):
+                shutil.rmtree(dir)
+            else :
                 os.makedirs(dir)
         except Exception as err:
             logger.error((f"Storage: s3_file_download :  file {err}"))
