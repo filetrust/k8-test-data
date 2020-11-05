@@ -2,6 +2,7 @@ import ast
 import json
 import logging
 import os
+import shutil
 import socket
 import zipfile
 from io import BytesIO
@@ -167,6 +168,15 @@ def create_app():
     @app.route("/s3_file_download", methods=['GET'])
     def s3_download_file():
         """ download single file from s3 given the key. """
+        try:
+            dir=os.path.join(app.root_path, "download")
+            shutil.rmtree(dir)
+            if not os.path.exists(dir):
+                os.makedirs(dir)
+        except Exception as err:
+            logger.error((f"Storage: s3_file_download :  file {err}"))
+            pass
+
         content = request.args
         bucket_name = content["bucket_name"]
         file_key = content["file_key"]
@@ -231,6 +241,8 @@ def create_app():
                 os.remove(os.path.join(Config.s3_upload_path, file.filename))
             except Exception as err:
                 logger.error((f"Storage: upload_to_s3 : removing original file {err}"))
+                pass
+
             ret = {"err": "none", 'details': content}
             return ret
         except Exception as error:
