@@ -20,16 +20,23 @@ class GovUKFileMigration:
         self.download_dir = Config.LOCAL_REPO_PATH
         self.n_files_to_fetch = float('inf')
 
-    def get_file_list(self):
+    def get_file_list_from_s3(self):
 
         try:
             file_list=[]
             # file_list = {}
-            s3_bucket_list_obj = requests.get(Config.S3_LIST_BUCKET_FILES_URL,
-                                              params={
-                                                  "bucket_name": Config.S3_BUCKET,
-                                                  "sub_dir": Config.S3_SUB_FOLDER_PREFIX
-                                              })
+            if(Config.S3_SUB_FOLDER_PREFIX):
+                s3_bucket_list_obj = requests.get(Config.S3_LIST_BUCKET_FILES_URL,
+                                                  params={
+                                                      "bucket_name": Config.S3_BUCKET,
+                                                      "sub_dir": Config.S3_SUB_FOLDER_PREFIX
+                                                  })
+            else:
+                s3_bucket_list_obj = requests.get(Config.S3_LIST_BUCKET_FILES_URL,
+                                                  params={
+                                                      "bucket_name": Config.S3_BUCKET,
+                                                      "sub_dir": ""
+                                                  })
 
             logger.info(s3_bucket_list_obj)
             if s3_bucket_list_obj.status_code==200:
@@ -38,7 +45,7 @@ class GovUKFileMigration:
                 file_list = json.loads(result)["file_list"]
 
         except Exception as e:
-            logger.error("get_file_list Got error while calling storage s3 client service, %s" % e)
+            logger.error("get_file_list_from_s3 Got error while calling storage s3 client service, %s" % e)
             raise e
 
         return file_list
@@ -189,15 +196,66 @@ class GovUKFileMigration:
 
         return fp_response.status_code
 
+    def download_file_from_azure(self,container_name,blob_name):
+        try:
+            # download files from azure bucket using s3client generator method
+            azure_file_download_obj = requests.get(Config.AZURE_FILE_DOWNLOAD_URL,
+                                                params={
+                                                    "container_name": container_name,
+                                                    "blob_name": blob_name,
+                                                })
+
+            byte_content = azure_file_download_obj.content
+
+            # recreate original file from received byte content
+            recreated_file_path = self.recreate_file(byte_content, blob_name)
+
+            logger.info("GovUKFileMigration::get_file "
+                        "Downloaded file header from azure.".format(azure_file_download_obj.headers))
+
+        except Exception as e:
+            logger.info("GovUKFileMigration::get_file Got error {} "
+                        "while downloading files from azure container {}.".format(e, container_name))
+            raise e
+
+        return recreated_file_path
+
+
+
+    def get_azure_list_blob(self,azure_container_name):
+        try:
+            file_list = []
+            azure_list_obj = requests.get(Config.AZURE_LIST_FILES_URL,
+                                          params={
+                                              "container_name": azure_container_name,
+                                          })
+            if azure_list_obj.status_code == 200:
+                logger.info(f"Azure blob list : {azure_list_obj}")
+                result = azure_list_obj
+                file_list = result
+            return file_list
+        except Exception as error:
+            logger.info(f"Azure get_azure_list_blobs : Error: {error}")
+            return None
+
+    def get_azure_containers(self):
+        try:
+            container_list = requests.get(Config.AZURE_LIST_CONTAINER_URL)
+            if container_list.status_code == 200:
+                logger.info(f"Azure container list : {container_list}")
+            return container_list
+        except Exception as error:
+            logger.info(f"Azure get_azure_list_blobs : Error: {error}")
+            return None
+
+
+
+
+
 
 if __name__ == '__main__':
-
     # create compression obj
     migration_obj = GovUKFileMigration()
-
-    # get file list from sub directory
-    file_list = migration_obj.get_file_list()
-    logger.info("GovUKFileMigration::__main__ Number of files from gov-uk bucket: {}".format(len(file_list)))
 
     # get all files already downloaded
     try:
@@ -216,33 +274,53 @@ if __name__ == '__main__':
         logger.error(e)
         download_file_list = []
 
-    # iterate over each file and download
-    for file_idx in range(1, len(file_list)):
+    if Config.type_of_source.lower()=="s3":
+        logger.info("Dowbnloading files from AWS S3")
+        # get file list from S3 sub directory
+        file_list = migration_obj.get_file_list_from_s3()
+        logger.info("GovUKFileMigration::__main__ Number of files from gov-uk bucket: {}".format(len(file_list)))
 
-        try:
-            if any(file_list[file_idx].split('/')[-1] in dwld_file for dwld_file in download_file_list):
-                logger.info("Already downloaded: %s" % file_list[file_idx])
-                continue
-        except Exception as e:
-            logger.error(e)
+        # iterate over each file and download
+        for file_idx in range(1, len(file_list)):
 
-        logger.info("This will be downloaded: %s" % file_list[file_idx])
+            try:
+                if any(file_list[file_idx].split('/')[-1] in dwld_file for dwld_file in download_file_list):
+                    logger.info("Already downloaded: %s" % file_list[file_idx])
+                    continue
+            except Exception as e:
+                logger.error(e)
 
-        # download file which is not in icap bucket list
-        download_path = migration_obj.download_file(file_list[file_idx].split('/')[-1], file_list[file_idx])
-        logger.info(f"download_path of preprocess_files : {download_path}")
+            logger.info("This will be downloaded: %s" % file_list[file_idx])
 
-        # pass the file to file processor as it downloads
-        migration_obj.preprocess_files(download_path)
+            # download file which is not in icap bucket list
+            download_path = migration_obj.download_file(file_list[file_idx].split('/')[-1], file_list[file_idx])
+            logger.info(f"download_path of preprocess_files : {download_path}")
 
+            # pass the file to file processor as it downloads
+            migration_obj.preprocess_files(download_path)
+    else:
 
+        # iterate over each file and download
+        logger.info("Dowbnloading files from AZURE")
+        container_list=migration_obj.get_azure_containers()
+        for c in container_list:
+            container_name =c.name
 
+            file_list=migration_obj.get_azure_list_blob(azure_container_name=container_name)
+            for file_idx in range(1, len(file_list)):
+                try:
+                    if any(file_list[file_idx].name in dwld_file for dwld_file in download_file_list):
+                        logger.info("Already downloaded: %s" % file_list[file_idx])
+                        continue
+                except Exception as e:
+                    logger.error(e)
 
+                blob_name=file_list[file_idx].name
+                download_path=migration_obj.download_file_from_azure(container_name=container_name,blob_name=blob_name)
+                logger.info(f"download_path of preprocess_files : {download_path}")
 
-    # except Exception as err:
-    #     logger.info("Error in main")
-    #     raise err
-        # pass the file to file processor as it downloads
+                # pass the file to file processor as it downloads
+                migration_obj.preprocess_files(download_path)
 
 
 

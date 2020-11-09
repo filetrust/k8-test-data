@@ -14,6 +14,7 @@ from flask import Flask, request, Response, jsonify, send_from_directory
 from .config import Config
 from .minio_service import MinioService
 from .s3_client import S3Client
+from .azure_client import AzureClient
 
 logger = logging.getLogger('GW:Storage')
 from dotenv import load_dotenv
@@ -30,6 +31,8 @@ def create_app():
                          Config.S3_ACCESS_KEY,
                          Config.S3_SECRET_KEY)
     # s3_client = S3Client(os.environ['S3_URL'], os.environ['S3_ACCESS_KEY'], os.environ['S3_SECRET_KEY'])
+
+    azure_client= AzureClient(azure_account_key=Config.azure_account_key,azure_account_name=Config.azure_account_name)
     if not os.path.exists(Config.s3_upload_path):
         os.makedirs(Config.s3_upload_path)
 
@@ -255,4 +258,63 @@ def create_app():
             ret = {"err": "error", "details": error}
             return ret
 
+    @app.route("/azure_list_containers", methods=['GET', 'POST'])
+    def list_containers_from_azure():
+        try:
+            logger.info("create_app: azure_list_containers")
+            c_list = azure_client.list_azure_containers()
+            return c_list
+        except Exception as error:
+            logger.error(f'create_app : list_files_from_azure : {error}')
+            return None
+
+    @app.route("/azure_list_blobs", methods=['GET', 'POST'])
+    def list_files_from_azure():
+        try:
+            logger.info("create_app: list_files_from_azure")
+            content = request.args
+            container_name=content['container_name']
+            blob_list=azure_client.list_azure_files(container_name=container_name)
+            return blob_list
+
+        except Exception as error:
+            logger.error(f'create_app : list_files_from_azure : {error}')
+            return None
+
+    @app.route("/azure_download_blob", methods=['GET', 'POST'])
+    def download_files_from_azure():
+        try:
+
+            try:
+                dir = os.path.join(app.root_path, "download")
+                if os.path.exists(dir):
+                    logger.error((f"Storage: deleting file_download src :  file {dir}"))
+                    shutil.rmtree(dir)
+                    logger.error((f"Storage: deleted file_download src :  file {dir}"))
+                if not os.path.exists(dir):
+                    logger.error((f"Storage: creating file_download src :  file {dir}"))
+                    os.makedirs(dir)
+                    logger.error((f"Storage: creating file_download src :  file {dir}"))
+
+            except Exception as err:
+                logger.error((f"Storage: s3_file_download :  file {err}"))
+                pass
+
+            logger.info("create_app: download_files_from_azure")
+            content = request.args
+            container_name = content['container_name']
+            blob_name=content['blob_name']
+            blob_list = azure_client.download_single_azure_blob(container_name=container_name,blob_name=blob_name)
+            dir = os.path.join(app.root_path, "download")
+            return send_from_directory(directory=dir,
+                                       filename=blob_name,
+                                       as_attachment=True)
+        except Exception as error:
+            logger.error(f'create_app : list_files_from_azure : {error}')
+            return None
+
     return app
+
+
+
+
