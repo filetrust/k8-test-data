@@ -30,7 +30,7 @@ class Crawler:
         try:
             for row in df.itertuples():
                 logger.info(f"Status code :{row.responseCode}")
-                if not int(row.responseCode) == 200:
+                if not row.responseCode == "200":
                     proxy_url = row.URL
                     logger.info(f"Proxy_url :{proxy_url}")
                     url=proxy_url.replace(".glasswall-icap.com","")
