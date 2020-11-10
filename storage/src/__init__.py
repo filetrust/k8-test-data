@@ -1,6 +1,6 @@
 import ast
 import json
-import logging
+import logging as logger
 import os
 import shutil
 import socket
@@ -16,9 +16,13 @@ from .minio_service import MinioService
 from .s3_client import S3Client
 from .azure_client import AzureClient
 
-logger = logging.getLogger('GW:Storage')
+logger.basicConfig(filename="testdata_storage.log",
+                    format='%(asctime)s %(message)s',
+                    filemode='w')
+
 from dotenv import load_dotenv
 load_dotenv()
+
 
 def create_app():
     app = Flask(__name__)
@@ -32,7 +36,8 @@ def create_app():
                          Config.S3_SECRET_KEY)
     # s3_client = S3Client(os.environ['S3_URL'], os.environ['S3_ACCESS_KEY'], os.environ['S3_SECRET_KEY'])
 
-    azure_client= AzureClient(azure_account_key=Config.azure_account_key,azure_account_name=Config.azure_account_name)
+    azure_client = AzureClient(azure_account_name=Config.azure_account_name,azure_account_key=Config.azure_account_key)
+
     if not os.path.exists(Config.s3_upload_path):
         os.makedirs(Config.s3_upload_path)
 
@@ -263,10 +268,16 @@ def create_app():
         try:
             logger.info("create_app: azure_list_containers")
             c_list = azure_client.list_azure_containers()
-            return c_list
+            list=[]
+            for c in c_list:
+                print(c.name)
+                list.append(c.name)
+            return jsonify({"error":None,"container_list": list})
+
         except Exception as error:
             logger.error(f'create_app : list_files_from_azure : {error}')
-            return None
+            return jsonify({"error":"error",'container_list': None})
+
 
     @app.route("/azure_list_blobs", methods=['GET', 'POST'])
     def list_files_from_azure():
@@ -274,12 +285,15 @@ def create_app():
             logger.info("create_app: list_files_from_azure")
             content = request.args
             container_name=content['container_name']
+            list=[]
             blob_list=azure_client.list_azure_files(container_name=container_name)
-            return blob_list
+            for b in blob_list:
+                list.append(b.name)
+            return jsonify({"error": None, "blob_list": list})
 
         except Exception as error:
             logger.error(f'create_app : list_files_from_azure : {error}')
-            return None
+            return jsonify({"error": "error", "blob_list": None})
 
     @app.route("/azure_download_blob", methods=['GET', 'POST'])
     def download_files_from_azure():
@@ -304,7 +318,7 @@ def create_app():
             content = request.args
             container_name = content['container_name']
             blob_name=content['blob_name']
-            blob_list = azure_client.download_single_azure_blob(container_name=container_name,blob_name=blob_name)
+            azure_client.download_single_azure_blob(container_name=container_name,blob_name=blob_name)
             dir = os.path.join(app.root_path, "download")
             return send_from_directory(directory=dir,
                                        filename=blob_name,

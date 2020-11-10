@@ -26,12 +26,14 @@ class Config(object):
     MINIO_SECRET_KEY = os.environ["MINIO_SECRET_KEY"]
     MINIO_ACCESS_KEY = os.environ["MINIO_ACCESS_KEY"]
 
-    S3_LIST_BUCKET_FILES_URL = os.environ["S3_LIST_BUCKET_FILES_URL"]
-    S3_FILE_DOWNLOAD_URL = os.environ["S3_FILE_DOWNLOAD_URL"]
+    S3_TARGET_BUCKET=os.environ.get("S3_TARGET_BUCKET")
 
-    AZURE_LIST_FILES_URL = os.environ["AZURE_LIST_FILES_URL"]
-    AZURE_FILE_DOWNLOAD_URL = os.environ["AZURE_FILE_DOWNLOAD_URL"]
-    AZURE_LIST_CONTAINER_URL=os.environ["AZURE_LIST_CONTAINER_URL"]
+    S3_LIST_BUCKET_FILES_URL = os.environ.get("S3_LIST_BUCKET_FILES_URL",None)
+    S3_FILE_DOWNLOAD_URL = os.environ.get("S3_FILE_DOWNLOAD_URL",None)
+
+    AZURE_LIST_FILES_URL = os.environ.get("AZURE_LIST_FILES_URL",None)
+    AZURE_FILE_DOWNLOAD_URL = os.environ.get("AZURE_FILE_DOWNLOAD_URL",None)
+    AZURE_LIST_CONTAINER_URL=os.environ.get("AZURE_LIST_CONTAINER_URL",None)
 
     type_of_source = os.environ.get("type_of_source", None)
 

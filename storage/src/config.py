@@ -16,7 +16,7 @@ class Config(object):
     S3_ACCESS_KEY = os.environ["S3_ACCESS_KEY_ID"]
     S3_SECRET_KEY = os.environ["S3_SECRET_ACCESS_KEY"]
     S3_REGION = os.environ["S3_REGION"]
-    S3_SUB_FOLDER_PREFIX = os.environ.get("S3_SUB_FOLDER_PREFIX",None)
+
 
     MINIO_ENDPOINT = os.environ["MINIO_HOSTNAME"]
     MINIO_SECRET_KEY = os.environ["MINIO_ACCESS_KEY_ID"]

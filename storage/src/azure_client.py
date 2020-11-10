@@ -1,4 +1,4 @@
-import logging
+import logging as logger
 import os
 import sys
 
@@ -6,7 +6,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 from src.config import Config as AppConfig
 import azure
 from azure.storage.blob import BlockBlobService, PublicAccess
-logger = logging.getLogger("GW:s3")
+
+logger.basicConfig(level=logger.INFO)
 
 
 class AzureClient:
@@ -15,16 +16,12 @@ class AzureClient:
                                       account_key=azure_account_key)
 
     def list_azure_containers(self):
-
         logger.info(f"Azure list containers ")
-        my_files = []
         containers = self.block_blob_service.list_containers()
         return containers
 
     def list_azure_files(self, container_name):
-
         logger.info(f"Azure list files ")
-        my_files = []
         my_files = self.block_blob_service.list_blobs(container_name)
 
         return my_files
