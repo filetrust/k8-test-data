@@ -33,7 +33,6 @@ class Config(object):
 
     AZURE_LIST_FILES_URL = os.environ.get("AZURE_LIST_FILES_URL",None)
     AZURE_FILE_DOWNLOAD_URL = os.environ.get("AZURE_FILE_DOWNLOAD_URL",None)
-    AZURE_LIST_CONTAINER_URL=os.environ.get("AZURE_LIST_CONTAINER_URL",None)
 
     type_of_source = os.environ.get("type_of_source", None)
 

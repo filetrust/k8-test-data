@@ -27,3 +27,7 @@ class Config(object):
 
     azure_account_key=os.environ.get("azure_account_key",None)
     azure_account_name=os.environ.get("azure_account_name",None)
+
+    conn_str=os.environ.get("conn_str",None)
+    share_name =os.environ.get("share_name",None)
+    parent_dir_name =os.environ.get("parent_dir_name",None)

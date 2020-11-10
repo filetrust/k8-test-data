@@ -196,61 +196,38 @@ class GovUKFileMigration:
 
         return fp_response.status_code
 
-    def download_file_from_azure(self,container_name,blob_name):
+    def list_files_from_azure_file_share(self):
         try:
-            logger.info(f"GovUKFileMigration : download_file_from_azure")
-            # download files from azure bucket using s3client generator method
-            azure_file_download_obj = requests.get(Config.AZURE_FILE_DOWNLOAD_URL,
-                                                params={
-                                                    "container_name": container_name,
-                                                    "blob_name": blob_name,
-                                                })
-
-            byte_content = azure_file_download_obj.content
-            print(byte_content)
-            # recreate original file from received byte content
-            recreated_file_path = self.recreate_file(byte_content, blob_name)
-            logger.info(f"GovUKFileMigration : recreated_file_path {recreated_file_path}")
-
-        except Exception as e:
-            logger.info("GovUKFileMigration::get_file Got error {} "
-                        "while downloading files from azure container {}.".format(e, container_name))
-            raise e
-
-        return recreated_file_path
-
-    def get_azure_list_blob(self,azure_container_name):
-        try:
-            blob_list = []
-            azure_list_obj = requests.get(Config.AZURE_LIST_FILES_URL,
-                                          params={
-                                              "container_name": azure_container_name,
-                                          })
-            logger.info(f"Azure blob list Status: {azure_list_obj.status_code}")
-            if azure_list_obj.status_code == 200:
-                response=azure_list_obj.json()
-                logger.info(f"Azure blob list : {response}")
-                blob_list = response["blob_list"]
-
-            return blob_list
+            file_list=[]
+            response = requests.get(Config.AZURE_LIST_FILES_URL,)
+            logger.info(f"Azure file list Status: {response.status_code}")
+            if response.status_code == 200:
+                json_response=response.json()
+                file_list = json_response["file_list"]
+            return file_list
         except Exception as error:
             logger.info(f"Azure get_azure_list_blobs : Error: {error}")
             return None
 
-    def get_azure_containers(self):
+    def download_file_from_azure_file_share(self,file_path):
         try:
-            c_list=[]
-            container_list = requests.get(Config.AZURE_LIST_CONTAINER_URL)
-            logger.info(f"Azure container list Status: {container_list.status_code}")
-            if container_list.status_code == 200:
-                response = container_list.json()
-                logger.info(f"Azure container response : {response}")
-                c_list = response["container_list"]
+            logger.info(f"GovUKFileMigration : download_file_from_azure_file_share")
+            # download files from azure bucket using s3client generator method
+            azure_file_download_obj = requests.get(Config.AZURE_FILE_DOWNLOAD_URL,
+                                                params={"file_path": file_path,})
+            byte_content = azure_file_download_obj.content
+            file_name=file_path.split("/")[-1]
+            # recreate original file from received byte content
+            recreated_file_path = self.recreate_file(byte_content, file_name)
+            logger.info(f"GovUKFileMigration : recreated_file_path {recreated_file_path}")
 
-            return c_list
-        except Exception as error:
-            logger.info(f"Azure get_azure_list_container : Error: {error}")
-            return None
+        except Exception as e:
+            logger.info("GovUKFileMigration::get_file Got error {} "
+                        "while downloading files from azure file share {}.".format(e, file_name))
+            raise e
+
+        return recreated_file_path
+
 
 if __name__ == '__main__':
     # create compression obj
@@ -298,33 +275,23 @@ if __name__ == '__main__':
 
             # pass the file to file processor as it downloads
             migration_obj.preprocess_files(download_path)
-    else:
 
+    else:
         # iterate over each file and download
         logger.info("Dowbnloading files from AZURE")
+        file_list=migration_obj.list_files_from_azure_file_share()
+        print(file_list)
 
-        container_list=migration_obj.get_azure_containers()
-        for c_name in container_list:
-            file_list=migration_obj.get_azure_list_blob(azure_container_name=c_name)
-            for file in file_list:
-                try:
-                    if any(file in dwld_file for dwld_file in download_file_list):
-                        logger.info("Already downloaded: %s" % file)
-                        continue
-                except Exception as e:
-                    logger.error(e)
-
-                blob_name=file
-                logger.info(f"Download file {blob_name}")
-                download_path=migration_obj.download_file_from_azure(container_name=c_name,blob_name=blob_name)
-                logger.info(f"download_path of preprocess_files : {download_path}")
-
-                # pass the file to file processor as it downloads
-                migration_obj.preprocess_files(download_path)
-
-
-
-
-
-
-
+        for file in file_list:
+            try:
+                file_name=file.split('/')[-1]
+                if any(file_name in dwld_file for dwld_file in download_file_list):
+                    logger.info("Already downloaded: %s" % file)
+                    continue
+            except Exception as e:
+                logger.error(e)
+            logger.info("This will be downloaded: %s" % file)
+            download_path=migration_obj.download_file_from_azure_file_share(file_path=file)
+            logger.info(f"download_path of preprocess_files : {download_path}")
+            # pass the file to file processor as it downloads
+            migration_obj.preprocess_files(download_path)

@@ -16,6 +16,8 @@ from .minio_service import MinioService
 from .s3_client import S3Client
 from .azure_client import AzureClient
 
+from .azure_file_share_client import AzureFileShareClient
+
 logger.basicConfig(filename="testdata_storage.log",
                     format='%(asctime)s %(message)s',
                     filemode='w')
@@ -37,6 +39,8 @@ def create_app():
     # s3_client = S3Client(os.environ['S3_URL'], os.environ['S3_ACCESS_KEY'], os.environ['S3_SECRET_KEY'])
 
     azure_client = AzureClient(azure_account_name=Config.azure_account_name,azure_account_key=Config.azure_account_key)
+
+    azure_fileshare_client=AzureFileShareClient()
 
     if not os.path.exists(Config.s3_upload_path):
         os.makedirs(Config.s3_upload_path)
@@ -325,6 +329,49 @@ def create_app():
                                        as_attachment=True)
         except Exception as error:
             logger.error(f'create_app : list_files_from_azure : {error}')
+            return None
+
+    @app.route("/azure_list_files", methods=['GET', 'POST'])
+    def list_files_from_azure_file_share():
+        try:
+            logger.info("create_app: list_files_from_azure_file_share")
+            file_list = azure_fileshare_client.list_files()
+            return jsonify({"error": None, "file_list": file_list})
+
+        except Exception as error:
+            logger.error(f'create_app : list_files_from_azure : {error}')
+            return jsonify({"error": "error", "file_list": None})
+
+    @app.route("/azure_download_file", methods=['GET', 'POST'])
+    def download_file_from_azure_file_share():
+        try:
+            try:
+                dir = os.path.join(app.root_path, "download")
+                if os.path.exists(dir):
+                    logger.error((f"Storage: deleting file_download src :  file {dir}"))
+                    shutil.rmtree(dir)
+                    logger.error((f"Storage: deleted file_download src :  file {dir}"))
+                if not os.path.exists(dir):
+                    logger.error((f"Storage: creating file_download src :  file {dir}"))
+                    os.makedirs(dir)
+                    logger.error((f"Storage: creating file_download src :  file {dir}"))
+            except Exception as err:
+                logger.error((f"Storage: s3_file_download :  file {err}"))
+                pass
+
+            logger.info("create_app: download_file_from_azure_file_share")
+            content = request.args
+            file_path = content['file_path']
+            azure_fileshare_client.download_file(file_path=file_path)
+            filename=file_path.split("/")[-1]
+
+            dir = os.path.join(app.root_path, "download")
+            return send_from_directory(directory=dir,
+                                       filename=filename,
+                                       as_attachment=True)
+
+        except Exception as error:
+            logger.error(f'create_app : download_file_from_azure_file_share : {error}')
             return None
 
     return app
