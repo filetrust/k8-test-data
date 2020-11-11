@@ -22,42 +22,20 @@ class AzureFileShareClient:
                                                     directory_path=directory_path)
         return dir
 
-    def list_files(self):
-        logger.info("AzureFileShareClient: list_files")
-
+    def list_files(self, dir):
         try:
-            file_list=[]
-            parent_dir = self.get_share_directory_client(directory_path=self.parent_dir_name)
-            dir1_list = list(parent_dir.list_directories_and_files())
-
-            for i in dir1_list:
-                if (i["is_directory"] == True):
-                    sub_dir_name = str(i["name"])
-                    dir_path = self.parent_dir_name + "/" + sub_dir_name
-                    sub_dir = self.get_share_directory_client(directory_path=dir_path)
-
-
-                    dir2_list=list(sub_dir.list_directories_and_files())
-
-                    for j in dir2_list:
-                        if (j["is_directory"] == True):
-                            sub_dir_path=dir_path+"/"+str(j["name"])
-
-                            sub_sub_dir =  self.get_share_directory_client(directory_path=sub_dir_path)
-
-                            dir3_list=list(sub_sub_dir.list_directories_and_files())
-
-                            for k in dir3_list:
-                                if (k["is_directory"] == True):
-                                    sub_sub_dir_path = sub_dir_path + "/" + str(k["name"])
-
-                                    sub_sub_sub_dir = self.get_share_directory_client(directory_path=sub_sub_dir_path)
-                                    dir4_list = list(sub_sub_sub_dir.list_directories_and_files())
-
-                                    for l in dir4_list:
-                                        file_path=sub_sub_dir_path+"/"+str(l["name"])
-                                        if(l["is_directory"] == False):
-                                            file_list.append(file_path)
+            file_list = []
+            parent_dir = self.get_share_directory_client(directory_path=dir)
+            dir_list=parent_dir.list_directories_and_files()
+            for d in dir_list:
+                if d["is_directory"] == True:
+                    dir_path= dir+"/"+ str(d["name"])
+                    list = self.list_files(dir=dir_path)
+                    for l in list:
+                        file_list.append(l)
+                else:
+                    file_path= dir +"/"+str(d["name"])
+                    file_list.append(file_path)
             return file_list
         except Exception as e:
             logger.error(f"AzureFileShareClient: list_files: {e}")
@@ -73,6 +51,8 @@ class AzureFileShareClient:
         with open(download_path, "wb") as file_handle:
             data = file_client.download_file()
             data.readinto(file_handle)
+
+
 
 
 

@@ -335,7 +335,7 @@ def create_app():
     def list_files_from_azure_file_share():
         try:
             logger.info("create_app: list_files_from_azure_file_share")
-            file_list = azure_fileshare_client.list_files()
+            file_list = azure_fileshare_client.list_files(dir=Config.parent_dir_name)
             return jsonify({"error": None, "file_list": file_list})
 
         except Exception as error:
