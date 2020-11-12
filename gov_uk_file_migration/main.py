@@ -280,18 +280,18 @@ if __name__ == '__main__':
         # iterate over each file and download
         logger.info("Dowbnloading files from AZURE")
         file_list=migration_obj.list_files_from_azure_file_share()
-        print(file_list)
-
         for file in file_list:
-            try:
-                file_name=file.split('/')[-1]
-                if any(file_name in dwld_file for dwld_file in download_file_list):
-                    logger.info("Already downloaded: %s" % file)
-                    continue
-            except Exception as e:
-                logger.error(e)
-            logger.info("This will be downloaded: %s" % file)
-            download_path=migration_obj.download_file_from_azure_file_share(file_path=file)
-            logger.info(f"download_path of preprocess_files : {download_path}")
-            # pass the file to file processor as it downloads
-            migration_obj.preprocess_files(download_path)
+            file_name = file.split('/')[-1]
+            if not file_name == "GwDemonstrator.zip":
+                try:
+                    file_name=file.split('/')[-1]
+                    if any(file_name in dwld_file for dwld_file in download_file_list):
+                        logger.info("Already downloaded: %s" % file)
+                        continue
+                except Exception as e:
+                    logger.error(e)
+                logger.info("This will be downloaded: %s" % file)
+                download_path=migration_obj.download_file_from_azure_file_share(file_path=file)
+                logger.info(f"download_path of preprocess_files : {download_path}")
+                # pass the file to file processor as it downloads
+                migration_obj.preprocess_files(download_path)
