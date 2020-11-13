@@ -20,6 +20,7 @@ class Config(object):
     S3_BUCKET = os.environ["S3_BUCKET"]
 
     S3_SUB_FOLDER_PREFIX = os.environ.get("S3_SUB_FOLDER_PREFIX",None)
+
     RABBIT_MQ_API = os.environ["rabbit_mq_api"]
 
     MINIO_ENDPOINT = os.environ["MINIO_URL"]
@@ -35,6 +36,7 @@ class Config(object):
     AZURE_FILE_DOWNLOAD_URL = os.environ.get("AZURE_FILE_DOWNLOAD_URL",None)
 
     type_of_source = os.environ.get("type_of_source", None)
+
 
 
 

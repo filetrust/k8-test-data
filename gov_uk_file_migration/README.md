@@ -25,6 +25,4 @@
     `docker-compose up -d storage-adapter`
     
     `docker-compose up`
-    
-   
-    
+

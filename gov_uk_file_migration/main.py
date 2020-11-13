@@ -1,5 +1,6 @@
 import os
 import json
+
 import logging as logger
 import shutil
 
@@ -8,6 +9,7 @@ from minio import Minio
 from src.config import Config
 
 logger.basicConfig(level=logger.INFO)
+
 
 
 class GovUKFileMigration:
@@ -52,6 +54,7 @@ class GovUKFileMigration:
 
     def download_file_from_s3(self, file_name, file_key):
 
+
         try:
             # download files from s3 bucket using s3client generator method
             s3_file_download_obj = requests.get(Config.S3_FILE_DOWNLOAD_URL,
@@ -80,6 +83,7 @@ class GovUKFileMigration:
 
         # store pdf bytes to txt
         byte_file_name = file_name.split('.')[0] + '.txt'
+
         downloaded_file_path = os.path.join(Config.LOCAL_REPO_PATH, file_name)
         try:
             file = open(byte_file_name, 'wb')
@@ -155,7 +159,6 @@ class GovUKFileMigration:
 
     @staticmethod
     def upload_to_minio(bucket_name, file_name, file_path, metadata):
-
         logger.info("GovUKFileMigration::upload_to_minio Uploading %s present at %s "
                     "to minio bucket %s" % (file_name, file_path, bucket_name))
         _client = Minio(endpoint=Config.MINIO_ENDPOINT,
@@ -171,6 +174,7 @@ class GovUKFileMigration:
             _client.fput_object(bucket_name=bucket_name,
                                 object_name=file_name,
                                 file_path=file_path, metadata=metadata)
+
             logger.info(f"GovUKFileMigration::upload_to_minio Uploaded file {file_name}")
         except Exception as e:
             logger.error("GovUKFileMigration::upload_to_minio Got error while uploaing to minio %s" % e)
@@ -296,3 +300,4 @@ if __name__ == '__main__':
             logger.info(f"download_path of preprocess_files : {download_path}")
             # pass the file to file processor as it downloads
             migration_obj.preprocess_files(download_path)
+

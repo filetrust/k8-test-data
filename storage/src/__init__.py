@@ -42,6 +42,7 @@ def create_app():
 
     azure_fileshare_client=AzureFileShareClient()
 
+
     if not os.path.exists(Config.s3_upload_path):
         os.makedirs(Config.s3_upload_path)
 
@@ -168,7 +169,6 @@ def create_app():
 
         else:
             file_list = s3_client.list_s3_bucket_files(bucket_name, sub_dir)
-
         response = {
             "file_list": file_list,
             "bucket_name": bucket_name,
