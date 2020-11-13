@@ -235,18 +235,19 @@ if __name__ == '__main__':
 
     # get all files already downloaded
     try:
-        s3_bucket_target_list_obj = requests.get(Config.S3_LIST_BUCKET_FILES_URL,
-                                                 params={
-                                                     "bucket_name": Config.S3_TARGET_BUCKET,
-                                                     "sub_dir": "",
-                                                     "receiver": True
-                                                 })
-        print(s3_bucket_target_list_obj)
-
-        # downloaded_files = s3_bucket_target_list_obj.content
-        result = s3_bucket_target_list_obj.json()
-        download_file_list = json.loads(result)["file_list"]
-        logger.info("Downloaded file list from icap bucket: %s" % download_file_list)
+        download_file_list=[]
+        if Config.S3_LIST_BUCKET_FILES_URL:
+            s3_bucket_target_list_obj = requests.get(Config.S3_LIST_BUCKET_FILES_URL,
+                                                     params={
+                                                         "bucket_name": Config.S3_TARGET_BUCKET,
+                                                         "sub_dir": "",
+                                                         "receiver": True
+                                                     })
+            print(s3_bucket_target_list_obj)
+            # downloaded_files = s3_bucket_target_list_obj.content
+            result = s3_bucket_target_list_obj.json()
+            download_file_list = json.loads(result)["file_list"]
+            logger.info("Downloaded file list from icap bucket: %s" % download_file_list)
     except Exception as e:
         logger.error(f'error in fetching target files{e}')
         download_file_list = []
@@ -259,7 +260,6 @@ if __name__ == '__main__':
 
         # iterate over each file and download
         for file_idx in range(1, len(file_list)):
-
             try:
                 if any(file_list[file_idx].split('/')[-1] in dwld_file for dwld_file in download_file_list):
                     logger.info("Already downloaded: %s" % file_list[file_idx])
@@ -282,16 +282,17 @@ if __name__ == '__main__':
         file_list=migration_obj.list_files_from_azure_file_share()
         for file in file_list:
             file_name = file.split('/')[-1]
-            if not file_name == "GwDemonstrator.zip":
-                try:
-                    file_name=file.split('/')[-1]
-                    if any(file_name in dwld_file for dwld_file in download_file_list):
-                        logger.info("Already downloaded: %s" % file)
-                        continue
-                except Exception as e:
-                    logger.error(e)
-                logger.info("This will be downloaded: %s" % file)
-                download_path=migration_obj.download_file_from_azure_file_share(file_path=file)
-                logger.info(f"download_path of preprocess_files : {download_path}")
-                # pass the file to file processor as it downloads
-                migration_obj.preprocess_files(download_path)
+            if file_name == "GwDemonstrator.zip":
+                continue
+            try:
+                file_name=file.split('/')[-1]
+                if any(file_name in dwld_file for dwld_file in download_file_list):
+                    logger.info("Already downloaded: %s" % file)
+                    continue
+            except Exception as e:
+                logger.error(e)
+            logger.info("This will be downloaded: %s" % file)
+            download_path=migration_obj.download_file_from_azure_file_share(file_path=file)
+            logger.info(f"download_path of preprocess_files : {download_path}")
+            # pass the file to file processor as it downloads
+            migration_obj.preprocess_files(download_path)
