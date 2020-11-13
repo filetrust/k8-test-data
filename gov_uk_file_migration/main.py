@@ -259,22 +259,28 @@ if __name__ == '__main__':
         logger.info("GovUKFileMigration::__main__ Number of files from gov-uk bucket: {}".format(len(file_list)))
 
         # iterate over each file and download
-        for file_idx in range(1, len(file_list)):
-            try:
-                if any(file_list[file_idx].split('/')[-1] in dwld_file for dwld_file in download_file_list):
-                    logger.info("Already downloaded: %s" % file_list[file_idx])
-                    continue
-            except Exception as e:
-                logger.error(e)
+        types = ["pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "png", "gif", "jpg"]
+        for type in types:
+            count=0
+            for file_idx in range(1, len(file_list)):
+                if count==5:
+                    break
+                logger.info("This will be downloaded: %s" % file_list[file_idx])
+                try:
+                    if any(file_list[file_idx].split('/')[-1] in dwld_file for dwld_file in download_file_list):
+                        logger.info("Already downloaded: %s" % file_list[file_idx])
+                        continue
+                except Exception as e:
+                    logger.error(e)
 
-            logger.info("This will be downloaded: %s" % file_list[file_idx])
+                if file_list[file_idx].split('.')[-1]==type:
+                    # download file which is not in icap bucket list
+                    download_path = migration_obj.download_file_from_s3(file_list[file_idx].split('/')[-1], file_list[file_idx])
+                    logger.info(f"download_path of preprocess_files : {download_path}")
 
-            # download file which is not in icap bucket list
-            download_path = migration_obj.download_file_from_s3(file_list[file_idx].split('/')[-1], file_list[file_idx])
-            logger.info(f"download_path of preprocess_files : {download_path}")
-
-            # pass the file to file processor as it downloads
-            migration_obj.preprocess_files(download_path)
+                    # pass the file to file processor as it downloads
+                    migration_obj.preprocess_files(download_path)
+                    count=count+1
 
     else:
         # iterate over each file and download
