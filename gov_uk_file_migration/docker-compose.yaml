@@ -1,0 +1,99 @@
+version: '3.6'
+services:
+  minio:
+    image: minio/minio:RELEASE.2020-09-08T23-05-18Z
+    volumes:
+      - data1-1:/data
+    ports:
+      - "9001:9000"
+    environment:
+      MINIO_ACCESS_KEY: minio1
+      MINIO_SECRET_KEY: minio1@123
+    command: server /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_DB: k8-test-data
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: toor
+    volumes:
+      - postgres:/var/lib/postgresql
+    ports:
+      - 5432:5432
+
+  storage-adapter:
+      image: storage:1.0
+      build:
+        context: .
+        dockerfile: ../storage/Dockerfile
+      env_file:
+        - ../storage/.env
+      ports:
+        - 50052:50052
+        - 5005:5002
+
+  k8-file-processor:
+    image: k8-file-processor:1.0
+    build:
+      context: .
+      dockerfile: ../file_processor/Dockerfile
+    env_file:
+      - ../file_processor/.env
+    ports:
+      - 5000:5000
+    links:
+      - minio
+      - postgres
+    depends_on:
+      - minio
+      - postgres
+
+  glasswall-rebuild:
+    image: glasswall-rebuild:1.0
+    environment:
+      PYTHONUNBUFFERED: 0
+    build:
+      context: .
+      dockerfile: ../glasswall_rebuild/Dockerfile
+    ports:
+      - 5003:5003
+
+  k8-s3-sync:
+    image: k8-s3-sync
+    env_file:
+      - ../s3_sync/.env
+    build:
+      context: .
+      dockerfile: ../s3_sync/Dockerfile
+    ports:
+      - 5004:5004
+    links:
+      - minio
+    depends_on:
+      - minio
+
+  gov-uk-migration:
+    image: gov-uk-migration
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - minio
+      - k8-file-processor
+      -  storage-adapter
+    links:
+      - minio
+      - k8-file-processor
+      - storage-adapter
+
+volumes:
+  data1-1:
+  postgres:

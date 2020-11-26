@@ -5,3 +5,6 @@ requests==2.23.0
 pathlib==1.0.1
 minio==6.0.0
 pyminizip==0.2.4
+flask_sqlalchemy==2.3.2
+psycopg2==2.7.4
+python-dotenv== 0.13.0

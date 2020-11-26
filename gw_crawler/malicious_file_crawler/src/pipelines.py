@@ -45,19 +45,18 @@ class MaliciousFileCrawlerPipeline(FilesPipeline):
             if (response.status == 200):
                 checksum = md5sum(buf)
                 buf.seek(0)
-                self.store.persist_file(path, buf, info)
-                downloaded_file_path = DOWNLOAD_PATH + path
+                #self.store.persist_file(path, buf, info)
+                #downloaded_file_path = DOWNLOAD_PATH + path
+                # file_stat = os.stat(downloaded_file_path)
                 extension = path.split("/")[-1].split('.')[-1]
                 if extension:
                     bucket_name = extension.lower()
                 else:
                     bucket_name = 'hash'
                 minio_path = path.split("/")[-1]
-                file_stat = os.stat(downloaded_file_path)
-
                 metadata = {"url": self.url}
                 self.store_data_stream(bucket_name=bucket_name, minio_path=minio_path, data=response.body,
-                                       length=file_stat.st_size, metadata=str(metadata))
+                                       length=buf.getbuffer().nbytes, metadata=str(metadata))
 
                 return checksum
 
@@ -87,7 +86,7 @@ class MaliciousFileCrawlerPipeline(FilesPipeline):
         self.url=self.url.replace(mal_key, "")
 
         logger.info(f'MaliciousFileCrawlerPipeline : file_path : malware url :  {self.url}')
-        media_guid = hashlib.sha1(to_bytes(self.url)).hexdigest()
+        media_guid = hashlib.sha256(to_bytes(self.url)).hexdigest()
         media_ext = os.path.splitext(request.url)[1]
         # Handles empty and wild extensions by trying to guess the
         # mime type then extension or default to empty string otherwise

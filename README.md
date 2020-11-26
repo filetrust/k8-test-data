@@ -77,35 +77,77 @@ Malware Public Repositories ( Proceed with caution when handling live malware) :
 
 Public malware reference - https://cyberlab.pacific.edu/resources/malware-samples-for-students
 Note :  http://contagiodump.blogspot.com/ in above public reference not implemented since it is paid service and password for malware zip is not availble
-
+    
+#Scraper and Virus file processing steps
 ## Build
 
 * Set .env file in each service(refer env.zip)
 
-`docker build -t rabbit-mq:1.0 rabbitmq`
-
-`docker build -t scrapyd gw_crawler/malicious_file_crawler`
-
-`docker build -t glasswallcrawler:1.0 gw_crawler`
-
-`docker build -t k8-file-processor file_processor`
-
-`docker build -t k8-file-distribution file_distribution`
-
-`docker build -t glasswall-rebuild  glasswall_rebuild`
-
-`docker build -t k8-s3-sync s3_sync`
-
-`docker build -t storage:1.0 storage`
-
+    `docker build -t rabbit-mq:1.0 rabbitmq`
+    
+    `docker build -t scrapyd gw_crawler/malicious_file_crawler`
+    
+    `docker build -t glasswallcrawler:1.0 gw_crawler`
+    
+    `docker build -t k8-file-processor file_processor`
+    
+    `docker build -t k8-file-distribution file_distribution`
+    
+    `docker build -t glasswall-rebuild  glasswall_rebuild`
+    
+    `docker build -t k8-s3-sync s3_sync`
+    
+    `docker build -t storage:1.0 storage`
+    
+    `docker build -t gov-uk-migration gov_uk_file_migration`
 
 ## Run
-`docker-compose up -d scrapyd`
-
-`docker-compose up -d rabbitmq`
-
-`docker-compose up`
+    `docker-compose up -d scrapyd`
+    
+    `docker-compose up -d postgres`
+    
+    `docker-compose up -d rabbitmq`
+    
+    `docker-compose up`
 
 ## Run security check
 
 `python3 -m bandit --skip B605 -ll -r .`
+
+#Postgress
+    
+    Currently we are using Postgres in docker container
+
+    You can setup external postgres by changin SQLALCHEMY_DATABASE_URI endpoint in file_processor/.env
+    
+    Download postgress browser client
+    https://www.postgresql.org/download/
+    
+    Setup your db 
+    Name : Anythin you want
+    host: <EC2 IP>
+    port:5432
+    username : postgres
+    password : toor
+    
+    table name: file_metadata
+    
+    Using simple sql queries, one can easily get desired information in CSV export
+    
+#Minio
+    Minio will be having unprocessed files which are failed in file processor
+    
+    minio browser url : http://<EC2 IP>:9001/
+    username : minio1
+    password: minio1@123
+    
+##Possible Errors
+
+    * Storage error in ec2
+    
+    * icap Rebuild license error
+    
+
+    
+
+

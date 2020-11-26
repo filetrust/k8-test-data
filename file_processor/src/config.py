@@ -3,6 +3,8 @@ import os
 
 logger = logging.getLogger("GW:file_processor")
 
+from dotenv import load_dotenv
+load_dotenv()
 
 def get_envar(k, required=True):
     val = os.environ.get(k, None)

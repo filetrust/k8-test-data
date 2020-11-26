@@ -16,8 +16,6 @@ class Config(object):
     S3_ACCESS_KEY = os.environ["S3_ACCESS_KEY_ID"]
     S3_SECRET_KEY = os.environ["S3_SECRET_ACCESS_KEY"]
     S3_REGION = os.environ["S3_REGION"]
-    S3_BUCKET = os.environ["S3_BUCKET"]
-    S3_SUB_FOLDER_PREFIX = os.environ["S3_SUB_FOLDER_PREFIX"]
 
     MINIO_ENDPOINT = os.environ["MINIO_HOSTNAME"]
     MINIO_SECRET_KEY = os.environ["MINIO_ACCESS_KEY_ID"]
@@ -25,3 +23,10 @@ class Config(object):
 
     minio_downlaod="src/download"
     s3_upload_path = "src/upload"
+
+    azure_account_key=os.environ.get("azure_account_key",None)
+    azure_account_name=os.environ.get("azure_account_name",None)
+
+    conn_str=os.environ.get("conn_str",None)
+    share_name =os.environ.get("share_name",None)
+    parent_dir_name =os.environ.get("parent_dir_name",None)

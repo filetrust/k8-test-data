@@ -31,6 +31,7 @@ def create_app():
         if not os.path.exists(Config.output_path):
             os.makedirs(Config.output_path)
 
+
         file = request.files.get("file")
         mode = request.form.get('mode', '1')
         config_file = 'Config.ini' if mode == '1' else 'Config0.ini'
@@ -46,7 +47,8 @@ def create_app():
         # print(os.system("ls -alh /usr/src/app/rebuild_files/output/"))
         # logger.info(os.system("ls -alh /usr/src/app/rebuild_files/output/Managed"))
         # logger.info(os.system("cat /usr/src/app/rebuild_files/output/glasswallCLIProcess.log"))
-        output_file =  file.filename if mode == 1 else file.filename + ".xml"
+        output_file =  file.filename if mode == '1' else file.filename + ".xml"
+
         try:
             return send_file(
                 Config.output_path + "/" + output_file,

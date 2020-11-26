@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
     <pdfConfig>
+		<watermark>Glasswall Processed</watermark>
 		<metadata>sanitise</metadata>
 		<javascript>sanitise</javascript>
 		<acroform>sanitise</acroform>
@@ -9,6 +10,7 @@
 		<external_hyperlinks>sanitise</external_hyperlinks>
 		<internal_hyperlinks>sanitise</internal_hyperlinks>
 		<embedded_images>sanitise</embedded_images>
+
     </pdfConfig>
     <wordConfig>
 		<metadata>sanitise</metadata>

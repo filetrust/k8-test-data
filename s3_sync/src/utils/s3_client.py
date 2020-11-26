@@ -44,6 +44,30 @@ class S3Client:
         except Exception as e:
             logger.error("ex : {}".format(e))
 
+    def upload_folder(self, file_path, file_name, bucket):
+        try:
+            if (self.s3.Bucket(AppConfig.S3_BUCKET) in self.s3.buckets.all()) == False:
+                self.s3.create_bucket(
+                    Bucket=AppConfig.S3_BUCKET,
+                    CreateBucketConfiguration={
+                        'LocationConstraint': AppConfig.S3_REGION
+                        }
+                    )
+            logger.info(
+                "Uploading file to bucket {} minio {}".format(AppConfig.S3_BUCKET, self.url)
+            )
+            self.s3.Bucket(AppConfig.S3_BUCKET).upload_file(file_path, bucket + "/" + file_name)
+            return AppConfig.S3_BUCKET + "/" + bucket + "/" + file_name
+        except ClientError as e:
+            logger.error(
+                "Cannot connect to the S3 {}. Please vefify the Credentials.".format(
+                    self.url
+                )
+            )
+            logger.error(e)
+        except Exception as e:
+            logger.error("ex : {}".format(e))
+
     def get_files(self, folder_name):
         try:
             bucket = self.s3.Bucket(AppConfig.S3_BUCKET)

@@ -51,7 +51,6 @@ services:
       - gw_crawler/.env
     ports:
       - 6800:6800
-      - 6801:6801
 
   glasswall-crawler:
     image: glasswallcrawler:1.0
@@ -122,17 +121,16 @@ services:
     ports:
       - 5003:5003
 
-
   postgres:
     image: postgres
     environment:
-      POSTGRES_DB: test-data
+      POSTGRES_DB: k8-test-data
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: toor
     volumes:
-      - ./db/postgres:/var/lib/postgresql/data
+      - postgres:/var/lib/postgresql/data
     ports:
-     - 5432:5432
+      - 5432:5432
 
   k8-s3-sync:
     image: k8-s3-sync
@@ -163,4 +161,4 @@ services:
 
 volumes:
   data1-1:
-  
+  postgres:

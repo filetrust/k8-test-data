@@ -33,7 +33,8 @@ class S3Client:
         if self.s3.Bucket(bucket_name) not in self.s3.buckets.all():
             raise Exception(f"{bucket_name} bucket does not exist")
         bucket = self.s3.Bucket(bucket_name)
-        bucket_file_list = bucket.objects.filter(Prefix=sub_dir)
+
+        bucket_file_list = bucket.objects.all() if sub_dir == "" else bucket.objects.filter(Prefix=sub_dir)
 
         for file in bucket_file_list:
             file_list.append(file.key)
@@ -45,7 +46,7 @@ class S3Client:
         bucket = self.s3.Bucket(bucket_name)
         try:
             file_download_obj = bucket.download_file(file_key,
-                                                     os.path.join(Config.s3_download_path,
+                                                     os.path.join(AppConfig.s3_download_path,
                                                                   file_name))
             logger.info(file_download_obj)
 

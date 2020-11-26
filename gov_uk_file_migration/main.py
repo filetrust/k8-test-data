@@ -1,12 +1,15 @@
 import os
 import json
-import logging
+
+import logging as logger
+import shutil
+
 import requests
 from minio import Minio
 from src.config import Config
-from src.utils.s3_client import S3Client
 
-logger = logging.getLogger("GW:s3")
+logger.basicConfig(level=logger.INFO)
+
 
 
 class GovUKFileMigration:
@@ -19,25 +22,38 @@ class GovUKFileMigration:
         self.download_dir = Config.LOCAL_REPO_PATH
         self.n_files_to_fetch = float('inf')
 
-    def get_file_list(self):
+    def get_file_list_from_s3(self):
 
         try:
-            s3_bucket_list_obj = requests.get(Config.S3_LIST_BUCKET_FILES_URL,
-                                              params={
-                                                  "bucket_name": Config.S3_BUCKET,
-                                                  "sub_dir": Config.S3_SUB_FOLDER_PREFIX
-                                              })
+            file_list=[]
+            # file_list = {}
+            if(Config.S3_SUB_FOLDER_PREFIX):
+                s3_bucket_list_obj = requests.get(Config.S3_LIST_BUCKET_FILES_URL,
+                                                  params={
+                                                      "bucket_name": Config.S3_BUCKET,
+                                                      "sub_dir": Config.S3_SUB_FOLDER_PREFIX
+                                                  })
+            else:
+                s3_bucket_list_obj = requests.get(Config.S3_LIST_BUCKET_FILES_URL,
+                                                  params={
+                                                      "bucket_name": Config.S3_BUCKET,
+                                                      "sub_dir": ""
+                                                  })
 
-            result = s3_bucket_list_obj.json()
-            file_list = json.loads(result)["file_list"]
+            logger.info(s3_bucket_list_obj)
+            if s3_bucket_list_obj.status_code==200:
+                logger.info(s3_bucket_list_obj)
+                result = s3_bucket_list_obj.json()
+                file_list = json.loads(result)["file_list"]
 
         except Exception as e:
-            logger.error("get_file_list Got error while calling storage s3 client service, %s" % e)
+            logger.error("get_file_list_from_s3 Got error while calling storage s3 client service, %s" % e)
             raise e
 
         return file_list
 
-    def download_file(self, file_name, file_key):
+    def download_file_from_s3(self, file_name, file_key):
+
 
         try:
             # download files from s3 bucket using s3client generator method
@@ -66,7 +82,8 @@ class GovUKFileMigration:
     def recreate_file(self, byte_content, file_name):
 
         # store pdf bytes to txt
-        byte_file_name = file_name.split('.')[0]+'.txt'
+        byte_file_name = file_name.split('.')[0] + '.txt'
+
         downloaded_file_path = os.path.join(Config.LOCAL_REPO_PATH, file_name)
         try:
             file = open(byte_file_name, 'wb')
@@ -97,38 +114,51 @@ class GovUKFileMigration:
 
         # extract file stats and return bucket name
         extension = path.split("/")[-1].split('.')[-1]
+        logger.info(f"Extension of file {extension}")
         if extension:
             bucket_name = extension.lower()
+            if len(bucket_name) > 62 or len(bucket_name) < 3:
+                bucket_name = 'miscellaneous'
         else:
-            bucket_name = 'hash'
-
+            bucket_name = 'miscellaneous'
+        logger.info(f"Bucket_name for minio upload  {bucket_name}")
         return bucket_name
 
     def preprocess_files(self, file):
-
-        # 1. extract meta data of the file
-        bucket_name = GovUKFileMigration.get_bucket_name(file)
-        file_name = file.split('/')[-1]
-
-        logger.info("GovUKFileMigration::preprocess_files Iterating file: %s |"
-                    " Bucket Name: %s | Filename: %s" % (file, bucket_name, file_name))
-
         try:
-            # 2. upload the file to minio before passing it to processor.
-            GovUKFileMigration.upload_to_minio(bucket_name=bucket_name, file_path=file, file_name=file_name)
-        except Exception as e:
-            logger.info("GovUKFileMigration::preprocess_files Got error {} "
-                        "while uploading to minio.".format(e))
-            raise e
 
-        # 3. pass received file to file processor
-        processor_response = GovUKFileMigration.process_file(file=file, bucket_name=bucket_name)
-        logger.info("GovUKFileMigration::preprocess_files File processor response: %s for "
-                    "file %s and bucket name %s" % (processor_response, file, bucket_name))
+            # 1. extract meta data of the file
+            bucket_name = GovUKFileMigration.get_bucket_name(file)
+            file_name = file.split('/')[-1]
+
+            logger.info("GovUKFileMigration::preprocess_files Iterating file: %s |"
+                        " Bucket Name: %s | Filename: %s" % (file, bucket_name, file_name))
+
+            try:
+                # 2. upload the file to minio before passing it to processor.
+                metadata = {"malicious": False}
+                GovUKFileMigration.upload_to_minio(bucket_name=bucket_name, file_path=file, file_name=file_name,
+                                                   metadata=metadata)
+            except Exception as e:
+                logger.info("GovUKFileMigration::preprocess_files Got error {} "
+                            "while uploading to minio.".format(e))
+                raise e
+
+            # 3. pass received file to file processor
+            processor_response = GovUKFileMigration.process_file(file=file, bucket_name=bucket_name)
+            logger.info("GovUKFileMigration::preprocess_files File processor response: %s for "
+                        "file %s and bucket name %s" % (processor_response, file, bucket_name))
+            try:
+                logger.info(f"deleting  file after preprocess: {download_path}")
+                os.remove(download_path)
+            except Exception as err:
+                logger.error((f'Error while deleted download upload path'))
+                pass
+        except Exception as err:
+            logger.error(f"preprocess_files {err}")
 
     @staticmethod
-    def upload_to_minio(bucket_name, file_name, file_path):
-
+    def upload_to_minio(bucket_name, file_name, file_path, metadata):
         logger.info("GovUKFileMigration::upload_to_minio Uploading %s present at %s "
                     "to minio bucket %s" % (file_name, file_path, bucket_name))
         _client = Minio(endpoint=Config.MINIO_ENDPOINT,
@@ -143,7 +173,8 @@ class GovUKFileMigration:
         try:
             _client.fput_object(bucket_name=bucket_name,
                                 object_name=file_name,
-                                file_path=file_path)
+                                file_path=file_path, metadata=metadata)
+
             logger.info(f"GovUKFileMigration::upload_to_minio Uploaded file {file_name}")
         except Exception as e:
             logger.error("GovUKFileMigration::upload_to_minio Got error while uploaing to minio %s" % e)
@@ -156,7 +187,6 @@ class GovUKFileMigration:
             "file": file.split('/')[-1],
             "bucket": bucket_name
         }
-
         try:
             file_processor_api = os.environ.get('file_processor_api', None)
             fp_response = requests.post(file_processor_api, json=payload)
@@ -170,27 +200,104 @@ class GovUKFileMigration:
 
         return fp_response.status_code
 
+    def list_files_from_azure_file_share(self):
+        try:
+            file_list=[]
+            response = requests.get(Config.AZURE_LIST_FILES_URL,)
+            logger.info(f"Azure file list Status: {response.status_code}")
+            if response.status_code == 200:
+                json_response=response.json()
+                file_list = json_response["file_list"]
+            return file_list
+        except Exception as error:
+            logger.info(f"Azure get_azure_list_blobs : Error: {error}")
+            return None
+
+    def download_file_from_azure_file_share(self,file_path):
+        try:
+            logger.info(f"GovUKFileMigration : download_file_from_azure_file_share")
+            # download files from azure bucket using s3client generator method
+            azure_file_download_obj = requests.get(Config.AZURE_FILE_DOWNLOAD_URL,
+                                                params={"file_path": file_path,})
+            byte_content = azure_file_download_obj.content
+            file_name=file_path.split("/")[-1]
+            # recreate original file from received byte content
+            recreated_file_path = self.recreate_file(byte_content, file_name)
+            logger.info(f"GovUKFileMigration : recreated_file_path {recreated_file_path}")
+
+        except Exception as e:
+            logger.info("GovUKFileMigration::get_file Got error {} "
+                        "while downloading files from azure file share {}.".format(e, file_name))
+            raise e
+
+        return recreated_file_path
+
 
 if __name__ == '__main__':
-
     # create compression obj
     migration_obj = GovUKFileMigration()
 
-    # get file list from sub directory
-    file_list = migration_obj.get_file_list()
-    logger.info("GovUKFileMigration::__main__ Number of files from gov-uk bucket: {}".format(len(file_list)))
+    # get all files already downloaded
+    try:
+        download_file_list=[]
+        if Config.S3_LIST_BUCKET_FILES_URL:
+            s3_bucket_target_list_obj = requests.get(Config.S3_LIST_BUCKET_FILES_URL,
+                                                     params={
+                                                         "bucket_name": Config.S3_TARGET_BUCKET,
+                                                         "sub_dir": "",
+                                                         "receiver": True
+                                                     })
+            print(s3_bucket_target_list_obj)
+            # downloaded_files = s3_bucket_target_list_obj.content
+            result = s3_bucket_target_list_obj.json()
+            download_file_list = json.loads(result)["file_list"]
+            logger.info("Downloaded file list from icap bucket: %s" % download_file_list)
+    except Exception as e:
+        logger.error(f'error in fetching target files{e}')
+        download_file_list = []
 
-    # iterate over each file and download
-    for file_idx in range(1, len(file_list)):
+    if Config.type_of_source.lower()=="s3":
+        logger.info("Dowbnloading files from AWS S3")
+        # get file list from S3 sub directory
+        file_list = migration_obj.get_file_list_from_s3()
+        logger.info("GovUKFileMigration::__main__ Number of files from gov-uk bucket: {}".format(len(file_list)))
 
-        download_path = migration_obj.download_file(file_list[file_idx].split('/')[-1], file_list[file_idx])
+        # iterate over each file and download
+        for file_idx in range(1, len(file_list)):
+            try:
+                if any(file_list[file_idx].split('/')[-1] in dwld_file for dwld_file in download_file_list):
+                    logger.info("Already downloaded: %s" % file_list[file_idx])
+                    continue
+            except Exception as e:
+                logger.error(e)
 
-        # pass the file to file processor as it downloads
-        migration_obj.preprocess_files(download_path)
+            logger.info("This will be downloaded: %s" % file_list[file_idx])
 
+            # download file which is not in icap bucket list
+            download_path = migration_obj.download_file_from_s3(file_list[file_idx].split('/')[-1], file_list[file_idx])
+            logger.info(f"download_path of preprocess_files : {download_path}")
 
+            # pass the file to file processor as it downloads
+            migration_obj.preprocess_files(download_path)
 
-
-
-
+    else:
+        # iterate over each file and download
+        logger.info("Dowbnloading files from AZURE")
+        file_list=migration_obj.list_files_from_azure_file_share()
+        for file in file_list:
+            file_name = file.split('/')[-1]
+            if file_name == "GwDemonstrator.zip":
+                continue
+            try:
+                file_name=file.split('/')[-1]
+                if any(file_name in dwld_file for dwld_file in download_file_list):
+                    logger.info("Already downloaded: %s" % file)
+                    continue
+            except Exception as e:
+                logger.error(e)
+            logger.info("This will be downloaded: %s" % file)
+            download_path=migration_obj.download_file_from_azure_file_share(file_path=file)
+            logger.info(f"download_path of preprocess_files : {download_path}")
+            # pass the file to file processor as it downloads
+            migration_obj.preprocess_files(download_path)
 
