@@ -66,7 +66,7 @@ class Processor:
         else:
             ext=None
             name = self.filename
-        if ext:
+        if ext and len(ext)>2:
             self.bucket_name = ext.lower()
             logger.info(f"downloading file {filename} from minio")
             self.directory = Config.download_path + "/" + name
@@ -357,7 +357,7 @@ class Processor:
             logger.info("Sending file to rabbitmq for s3 sync, %s" % self.directory)
 
             name = self.directory.split("/")[-1]
-            if self.ext:
+            if self.ext and len(self.ext)>2:
                 s3_bucket =self.ext.lower()
             else:
                 s3_bucket="miscellaneous"

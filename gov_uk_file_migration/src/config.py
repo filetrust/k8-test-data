@@ -27,7 +27,7 @@ class Config(object):
     MINIO_SECRET_KEY = os.environ["MINIO_SECRET_KEY"]
     MINIO_ACCESS_KEY = os.environ["MINIO_ACCESS_KEY"]
 
-    S3_TARGET_BUCKET=os.environ.get("S3_TARGET_BUCKET")
+    S3_TARGET_BUCKET=os.environ.get("S3_TARGET_BUCKET",None)
 
     S3_LIST_BUCKET_FILES_URL = os.environ.get("S3_LIST_BUCKET_FILES_URL",None)
     S3_FILE_DOWNLOAD_URL = os.environ.get("S3_FILE_DOWNLOAD_URL",None)

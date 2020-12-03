@@ -226,8 +226,7 @@ class GovUKFileMigration:
             logger.info(f"GovUKFileMigration : recreated_file_path {recreated_file_path}")
 
         except Exception as e:
-            logger.info("GovUKFileMigration::get_file Got error {} "
-                        "while downloading files from azure file share {}.".format(e, file_name))
+            logger.info("GovUKFileMigration::get_file Got error while downloading files from azure file share")
             raise e
 
         return recreated_file_path
