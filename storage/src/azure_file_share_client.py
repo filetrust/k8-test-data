@@ -28,6 +28,8 @@ class AzureFileShareClient:
             parent_dir = self.get_share_directory_client(directory_path=dir)
             dir_list=parent_dir.list_directories_and_files()
             for d in dir_list:
+                if d["name"]=="Archives":
+                    continue
                 if d["is_directory"] == True:
                     dir_path= dir+"/"+ str(d["name"])
                     list = self.list_files(dir=dir_path)

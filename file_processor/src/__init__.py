@@ -238,7 +238,10 @@ class Processor:
                         meta['url'] = minio_meta.metadata['x-amz-meta-url']
 
                 ext = self.ext if self.ext is not None else ""
-                real_name = self.filename + "." + ext
+                if self.ext:
+                    real_name = self.filename + "." + ext
+                else:
+                    real_name = self.filename
                 meta["file_name"] = real_name
 
                 meta['virus_total_status'] = self.virus_total_status
@@ -305,7 +308,11 @@ class Processor:
                 "Combining all reports, original file and malicious file to a zip"
             )
             ext = self.ext if self.ext is not None else ""
-            real_name = self.filename + "." + ext
+            if self.ext:
+                real_name = self.filename + "." + ext
+            else:
+                real_name = self.filename   
+            #real_name = self.filename + "." + ext
             original_file = self.directory + "/" + real_name
             self.original_name=original_file
             os.rename(self.file_path, original_file)

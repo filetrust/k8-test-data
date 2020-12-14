@@ -117,7 +117,7 @@ class GovUKFileMigration:
         logger.info(f"Extension of file {extension}")
         if extension:
             bucket_name = extension.lower()
-            if len(bucket_name) > 62 or len(bucket_name) < 3:
+            if len(bucket_name) > 62 or len(bucket_name) < 3 or len(path.split("/")[-1].split('.'))==1:
                 bucket_name = 'miscellaneous'
         else:
             bucket_name = 'miscellaneous'
@@ -130,11 +130,13 @@ class GovUKFileMigration:
             # 1. extract meta data of the file
             bucket_name = GovUKFileMigration.get_bucket_name(file)
             file_name = file.split('/')[-1]
-
+            ext = file.split("/")[-1].split('.')[-1]
             logger.info("GovUKFileMigration::preprocess_files Iterating file: %s |"
                         " Bucket Name: %s | Filename: %s" % (file, bucket_name, file_name))
-
+            ext_list=["bz2","7z","tar","gz","rar"]
             try:
+                
+
                 # 2. upload the file to minio before passing it to processor.
                 metadata = {"malicious": False}
                 GovUKFileMigration.upload_to_minio(bucket_name=bucket_name, file_path=file, file_name=file_name,
@@ -143,7 +145,7 @@ class GovUKFileMigration:
                 logger.info("GovUKFileMigration::preprocess_files Got error {} "
                             "while uploading to minio.".format(e))
                 raise e
-
+            
             # 3. pass received file to file processor
             processor_response = GovUKFileMigration.process_file(file=file, bucket_name=bucket_name)
             logger.info("GovUKFileMigration::preprocess_files File processor response: %s for "
@@ -285,7 +287,10 @@ if __name__ == '__main__':
         file_list=migration_obj.list_files_from_azure_file_share()
         for file in file_list:
             file_name = file.split('/')[-1]
-            if file_name == "GwDemonstrator.zip":
+            ext = file.split("/")[-1].split('.')[-1]
+            logger.info(ext)
+            ext_list = ["bz2", "7z", "tar", "gz", "rar"]
+            if file_name == "GwDemonstrator.zip" or ext in ext_list:
                 continue
             try:
                 file_name=file.split('/')[-1]
@@ -294,6 +299,7 @@ if __name__ == '__main__':
                     continue
             except Exception as e:
                 logger.error(e)
+        
             logger.info("This will be downloaded: %s" % file)
             download_path=migration_obj.download_file_from_azure_file_share(file_path=file)
             logger.info(f"download_path of preprocess_files : {download_path}")
